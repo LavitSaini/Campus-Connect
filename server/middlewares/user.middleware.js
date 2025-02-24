@@ -1,4 +1,4 @@
-import Admin from "../models/user.model.js";
+import User from "../models/user.model.js";
 import jwt from 'jsonwebtoken';
 import dotenv from "dotenv";
 dotenv.config();
@@ -12,17 +12,17 @@ export const checkAuth = async (req, res, next) => {
         if (!access_token) {
             return res.status(401).json({
                 message: "Unauthorized - No access token provided"
-            })
+            });
         }
 
         try {
             const { userId } = jwt.verify(access_token, process.env.ACCESS_TOKEN_SECRET);
 
-            const user = await Admin.findById(userId);
+            const user = await User.findById(userId);
 
             if (!user) {
                 return res.status(400).json({
-                    message: "Unauthorized - Admin not found"
+                    message: "Unauthorized - User not found"
                 })
             }
 
@@ -40,6 +40,27 @@ export const checkAuth = async (req, res, next) => {
         }
     } catch (error) {
         console.error("Error in checkAuth middleware:", error.stack);
+        return res.status(401).json({
+            message: "Unauthorized - An error occurred",
+        });
+    }
+}
+
+export const checkIsAdmin = async (req, res, next) => {
+    try {
+        const user = req.user;
+
+        if (user.role !== "admin") {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized, only admins can access this!"
+            })
+        }
+
+        next();
+
+    } catch (error) {
+        console.error("Error in checkIsAdmin middleware:", error.stack);
         return res.status(401).json({
             message: "Unauthorized - An error occurred",
         });

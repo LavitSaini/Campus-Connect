@@ -6,19 +6,19 @@ const eventSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    titleSlug : {
+    titleSlug: {
         type: String,
         trim: true,
     },
     description: {
         type: String,
         trim: true,
-        default : "",
+        default: "",
     },
-    eventImageUrl : {
-        type : String,
-        trim : true,
-        default : "",
+    eventImageUrl: {
+        type: String,
+        trim: true,
+        default: "",
     },
     category: {
         type: String,
@@ -27,24 +27,28 @@ const eventSchema = new mongoose.Schema({
     location: {
         type: String,
         trim: true,
-        required : true,
+        required: true,
     },
     date: {
         type: String,
         trim: true,
-        required : true,
+        required: true,
     },
     author: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Admin',
-        required : true, 
+        ref: 'User',
+        required: true,
+    },
+    club: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Club',
     }
 }, {
-    timestamps : true
+    timestamps: true
 });
 
 eventSchema.set('toJSON', {
-    versionKey : false,
+    versionKey: false,
 });
 
 const eventModel = new mongoose.model('Event', eventSchema);

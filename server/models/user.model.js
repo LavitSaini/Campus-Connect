@@ -20,21 +20,21 @@ const userSchema = new mongoose.Schema({
         required: [true, "Password is required"],
         trim: true,
     },
-    department : {
-        type : String,
-        required : true,
-        enum : ["CEC", "CCT", "CCE", "CCP", "CBSA", "CCH", "CCHM"],
+    department: {
+        type: String,
+        required: true,
+        enum: ["CEC", "CCT", "CCE", "CCP", "CBSA", "CCH", "CCHM"],
     },
-    role : {
-        type : String,
-        trim : true,
-        enum : ["student", "admin"],
-        default : "student",
+    role: {
+        type: String,
+        trim: true,
+        enum: ["student", "admin"],
+        default: "student",
     },
-    profileImageUrl : {
-        type : String,
-        trim : true,
-        default : "",
+    profileImageUrl: {
+        type: String,
+        trim: true,
+        default: "",
     },
     events: [
         {
@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema({
             ref: "Event",
         },
     ],
+    followingClubs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Club',
+    }],
+    adminAtClubs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Club',
+    }],
 }, {
     timestamps: true
 });
@@ -56,11 +64,11 @@ userSchema.pre('save', async function () {
 });
 
 userSchema.set('toJSON', {
-    versionKey : false,
+    versionKey: false,
     transform: function (doc, ret) {
         delete ret.password;
 
-        if(ret.role === "student") {
+        if (ret.role === "student") {
             delete ret.events;
         }
     }

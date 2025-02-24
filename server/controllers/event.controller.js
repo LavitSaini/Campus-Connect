@@ -1,4 +1,6 @@
 import Event from "../models/event.model.js";
+import Club from "../models/club.model.js";
+import User from "../models/user.model.js";
 import { sendEventEmail } from "../utils/event.utils.js";
 import cloudinary from "../lib/cloudinary.js";
 import slugify from "slugify";
@@ -6,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const createEvent = async (req, res) => {
     try {
-        const { user: admin } = req;
+        const admin = req.user;
         const data = req.body;
 
         if (!data.title || !data.date || !data.location || !data.category) {
@@ -29,11 +31,31 @@ export const createEvent = async (req, res) => {
             }
         }
 
+        let club;
+        if (data.club) {
+            club = await Club.findOne({
+                _id: data.club,
+                "admins.admin": { $in: [admin._id] },
+            });
+
+            if (!club) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Club not found"
+                });
+            }
+        }
+
         const titleSlug = slugify(data.title, { lower: true, strict: true });
         data["titleSlug"] = `${titleSlug}-${uuidv4().slice(0, 8)}`;
         data["author"] = admin._id;
 
         const event = await Event.create(data);
+
+        if (club) {
+            club.events.push(event._id);
+            await club.save();
+        }
 
         // run an async task to notify all the subscribe users about the event
 
@@ -60,7 +82,7 @@ export const createEvent = async (req, res) => {
 
 export const deleteEvent = async (req, res) => {
     try {
-        // const admin = req.admin;
+        const admin = req.user;
 
         const { eventId } = req.params;
 
@@ -71,15 +93,24 @@ export const deleteEvent = async (req, res) => {
             });
         }
 
-        // const event = await Event.findOne({_id : eventId, author : admin._id});
-
-        const event = await Event.findById(eventId);
+        const event = await Event.findOne({_id : eventId, author : admin._id});
 
         if (!event) {
             return res.status(404).json({
                 success: false,
                 message: "Event not found"
             });
+        }
+
+        // pull object events from admin
+        await User.findByIdAndUpdate(admin._id, {
+            $pull : { events : event._id }
+        });
+
+        if(event.club) {
+            await Club.findByIdAndUpdate(event.club, {
+                $pull : { events : event._id }
+            })
         }
 
         await Event.findByIdAndDelete(event._id);
@@ -100,7 +131,7 @@ export const deleteEvent = async (req, res) => {
 
 export const updateEvent = async (req, res) => {
     try {
-        // const admin = req.admin;
+        const admin = req.user;
         const { eventId } = req.params;
         const data = req.body;
 
@@ -111,9 +142,7 @@ export const updateEvent = async (req, res) => {
             });
         }
 
-        // const event = await Event.findOne({_id : eventId, author : admin._id});
-
-        const event = await Event.findById(eventId);
+        const event = await Event.findOne({_id : eventId, author : admin._id});
 
         if (!event) {
             return res.status(404).json({
