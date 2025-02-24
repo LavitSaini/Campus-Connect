@@ -1,9 +1,9 @@
-import Admin from "../models/admin.model.js";
+import Admin from "../models/user.model.js";
 import jwt from 'jsonwebtoken';
 import dotenv from "dotenv";
 dotenv.config();
 
-import { adminValidationSchema } from "../validators/admin.validator.js";
+import { adminValidationSchema } from "../validators/user.validator.js";
 
 export const checkAuth = async (req, res, next) => {
     try {

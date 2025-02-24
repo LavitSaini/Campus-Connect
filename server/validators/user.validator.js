@@ -36,6 +36,14 @@ export const adminValidationSchema = Joi.object({
             "any.required": "Department is required"
         }),
 
+    role: Joi.string()
+        .valid("student", "admin")
+        .trim()
+        .default("student")
+        .messages({
+            "any.only": "Role must be one of student, admin",
+        }),
+
     profileImageUrl: Joi.string()
         .uri()
         .trim()

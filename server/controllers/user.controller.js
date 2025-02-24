@@ -1,38 +1,38 @@
-import Admin from "../models/admin.model.js";
+import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { Redis } from "../lib/redis.js"
 import dotenv from "dotenv";
 import bcrypt from 'bcrypt';
-import { generateTokens, setCookies, storeRefreshToken } from '../utils/admin.utils.js';
+import { generateTokens, setCookies, storeRefreshToken } from '../utils/user.utils.js';
 dotenv.config();
 
 export const signUpUser = async (req, res) => {
     try {
         const data = req.body;
 
-        const isAdminAlreadyPresent = await Admin.findOne({ email : data.email });
+        const isUserAlreadyPresent = await User.findOne({ email : data.email });
 
-        if (isAdminAlreadyPresent) {
+        if (isUserAlreadyPresent) {
             return res.status(409).json({
                 success : false,
-                message: "Admin already present with these credentials"
+                message: "Account already present with these credentials"
             })
         }
 
-        const admin = await Admin.create(data);
+        const user = await User.create(data);
 
         // generate tokens
-        const { accessToken, refreshToken } = generateTokens(admin._id);
+        const { accessToken, refreshToken } = generateTokens(user._id);
 
         // store refresh token in redis
-        await storeRefreshToken(refreshToken, admin._id);
+        await storeRefreshToken(refreshToken, user._id);
 
         // set both tokens in secure cookies
         setCookies(accessToken, refreshToken, res);
 
         return res.status(201).json({
-            admin,
-            message: "Admin created successfully"
+            user,
+            message: "User created successfully"
         });
 
     } catch (error) {
@@ -46,25 +46,25 @@ export const loginUser = async (req, res) => {
         const { email, password } = req.body;
 
         // find the user first
-        const admin = await Admin.findOne({ email });
+        const user = await User.findOne({ email });
 
-        if (!admin) return res.status(400).json({ success : false, message: "Invalid credentials" })
+        if (!user) return res.status(400).json({ success : false, message: "Invalid credentials" })
 
         // match the password
-        const isPasswordValid = await bcrypt.compare(password, admin.password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) return res.status(400).json({ success : false, message: "Invalid credentials" })
 
         // generate tokens
-        const { accessToken, refreshToken } = generateTokens(admin._id);
+        const { accessToken, refreshToken } = generateTokens(user._id);
 
-        await storeRefreshToken(refreshToken, admin._id);
+        await storeRefreshToken(refreshToken, user._id);
 
         setCookies(accessToken, refreshToken, res);
 
         res.status(200).json({
-            admin,
-            message: "Admin loggedIn successfully"
+            user,
+            message: "User loggedIn successfully"
         })
 
     } catch (error) {

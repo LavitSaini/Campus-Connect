@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from "bcrypt";
 
-const adminSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         minLength: [3, "Name should be minimum of length 3"],
@@ -25,6 +25,12 @@ const adminSchema = new mongoose.Schema({
         required : true,
         enum : ["CEC", "CCT", "CCE", "CCP", "CBSA", "CCH", "CCHM"],
     },
+    role : {
+        type : String,
+        trim : true,
+        enum : ["student", "admin"],
+        default : "student",
+    },
     profileImageUrl : {
         type : String,
         trim : true,
@@ -41,7 +47,7 @@ const adminSchema = new mongoose.Schema({
 });
 
 
-adminSchema.pre('save', async function () {
+userSchema.pre('save', async function () {
     const user = this;
     if (!user.isModified('password')) {
         return;
@@ -49,13 +55,17 @@ adminSchema.pre('save', async function () {
     user.password = await bcrypt.hash(user.password, 10);
 });
 
-adminSchema.set('toJSON', {
+userSchema.set('toJSON', {
     versionKey : false,
     transform: function (doc, ret) {
         delete ret.password;
+
+        if(ret.role === "student") {
+            delete ret.events;
+        }
     }
 });
 
-const adminModel = mongoose.model('Admin', adminSchema);
+const User = mongoose.model('User', userSchema);
 
-export default adminModel;
+export default User;

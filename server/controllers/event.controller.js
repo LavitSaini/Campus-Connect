@@ -6,10 +6,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const createEvent = async (req, res) => {
     try {
-        const { user : admin } = req;
+        const { user: admin } = req;
         const data = req.body;
 
-        if(!data.title || !data.date || !data.location || !data.category) {
+        if (!data.title || !data.date || !data.location || !data.category) {
             return res.status(400).json({
                 success: false,
                 message: "title, date, category and location are required",
@@ -40,7 +40,9 @@ export const createEvent = async (req, res) => {
         admin.events.push(event._id);
         await admin.save();
 
-        sendEventEmail(event);
+        sendEventEmail(event).catch((error) => {
+            console.error("Failed to send emails:", error);
+        });
 
         return res.status(201).json({
             success: true,
