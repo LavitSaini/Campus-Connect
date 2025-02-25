@@ -5,6 +5,9 @@ import useAuthStore from "./stores/authStore";
 import HomePage from "./pages/HomePage";
 import CreateEventPage from "./pages/CreateEventPage";
 import EventsPage from "./pages/EventsPage";
+import './App.css'
+import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage";
 
 const App = () => {
   const { authUser } = useAuthStore();
@@ -19,6 +22,8 @@ const App = () => {
             element={authUser ? <CreateEventPage /> : <Navigate to="/" />} 
           />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
         </Routes>
       </BrowserRouter>
 
