@@ -5,6 +5,7 @@ import { sendEventEmail } from "../utils/event.utils.js";
 import cloudinary from "../lib/cloudinary.js";
 import slugify from "slugify";
 import { v4 as uuidv4 } from 'uuid';
+import mongoose from "mongoose";
 
 export const createEvent = async (req, res) => {
     try {
@@ -26,7 +27,7 @@ export const createEvent = async (req, res) => {
 
             } catch (error) {
                 console.log(error);
-                console.log("Error coming while uploading course image", error.message);
+                console.log("Error coming while uploading event image", error.message);
                 throw error;
             }
         }
@@ -41,7 +42,7 @@ export const createEvent = async (req, res) => {
             if (!club) {
                 return res.status(404).json({
                     success: false,
-                    message: "Club not found"
+                    message: "Club not found or you were not admin"
                 });
             }
         }
@@ -81,6 +82,9 @@ export const createEvent = async (req, res) => {
 }
 
 export const deleteEvent = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const admin = req.user;
 
@@ -93,27 +97,29 @@ export const deleteEvent = async (req, res) => {
             });
         }
 
-        const event = await Event.findOne({_id : eventId, author : admin._id});
+        const event = await Event.findOne({_id : eventId, author : admin._id}, { session })
 
         if (!event) {
             return res.status(404).json({
                 success: false,
-                message: "Event not found"
+                message: "Event not found or you were not author"
             });
         }
 
         // pull object events from admin
         await User.findByIdAndUpdate(admin._id, {
-            $pull : { events : event._id }
-        });
+            $pull : { events : event._id },
+        }, { session })
 
         if(event.club) {
             await Club.findByIdAndUpdate(event.club, {
                 $pull : { events : event._id }
-            })
+            }, { session });
         }
 
-        await Event.findByIdAndDelete(event._id);
+        await Event.findByIdAndDelete(event._id, { session });
+
+        await session.commitTransaction();
 
         return res.json({
             success: true,
@@ -121,11 +127,15 @@ export const deleteEvent = async (req, res) => {
         });
 
     } catch (error) {
+        await session.abortTransaction();
+
         console.log("Error coming while deleting event", error.message);
         return res.status(500).json({
             success: false,
             message: "Unknown error occurred while deleting event"
-        })
+        });
+    } finally {
+        session.endSession();
     }
 }
 
@@ -147,7 +157,7 @@ export const updateEvent = async (req, res) => {
         if (!event) {
             return res.status(404).json({
                 success: false,
-                message: "Event not found"
+                message: "Event not found or you were not author"
             });
         }
 
