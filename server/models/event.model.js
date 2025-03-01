@@ -47,6 +47,8 @@ const eventSchema = new mongoose.Schema({
     timestamps: true
 });
 
+eventSchema.index({ createdAt : -1 });
+
 eventSchema.set('toJSON', {
     versionKey: false,
 });

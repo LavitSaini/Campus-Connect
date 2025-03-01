@@ -260,7 +260,7 @@ export const followClub = async (req, res) => {
 
         const club = await Club.findByIdAndUpdate(clubId, {
             $addToSet: { followers: user._id },
-        }, { new: true, session });
+        }, { new: true, session });        
 
         if (!club) {
             await session.abortTransaction();
@@ -347,5 +347,53 @@ export const unfollowClub = async (req, res) => {
         })
     } finally {
         session.endSession();
+    }
+}
+
+export const getClubs = async (req, res) => {
+    try {
+        const CREATEDBY_SAFE_DATA = "name department profileImageUrl";
+        let { page, limit } = req.query;
+
+        page = parseInt(page) || 1;
+        limit = parseInt(limit) || 10;
+        let skip = (page - 1) * limit;
+
+        const totalClubs = await Club.countDocuments({});
+
+        // TODO: add advance filtering
+        const clubs = await Club.find({})
+            .sort({ 'createdAt': -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('createdBy', CREATEDBY_SAFE_DATA)
+            .populate({
+                path: "admins.admin",
+                select: "name department profileImageUrl"
+            })
+            .lean()
+
+        if (clubs.length === 0) {
+            return res.status(404).json({
+                success: true,
+                message: "No clubs found",
+                clubs: []
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "Clubs fetched successfully",
+            clubs,
+            page,
+            totalPages: Math.ceil(totalClubs / limit),
+        });
+
+    } catch (error) {
+        console.log("Error coming while getting clubs", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Unknown error occurred getting clubs"
+        });
     }
 }

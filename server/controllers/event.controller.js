@@ -91,33 +91,36 @@ export const deleteEvent = async (req, res) => {
         const { eventId } = req.params;
 
         if (!eventId) {
+            await session.abortTransaction();
+
             return res.status(400).json({
                 success: false,
                 message: "EventId is required"
             });
         }
 
-        const event = await Event.findOne({_id : eventId, author : admin._id}, { session })
+        const event = await Event.findOne({_id : eventId, author : admin._id});
 
         if (!event) {
+            await session.abortTransaction();
+
             return res.status(404).json({
                 success: false,
                 message: "Event not found or you were not author"
             });
         }
 
-        // pull object events from admin
-        await User.findByIdAndUpdate(admin._id, {
+        await User.updateOne({ _id : admin._id }, {
             $pull : { events : event._id },
-        }, { session })
+        }, { session });
 
         if(event.club) {
-            await Club.findByIdAndUpdate(event.club, {
+            await Club.updateOne({ _id : event.club }, {
                 $pull : { events : event._id }
             }, { session });
         }
 
-        await Event.findByIdAndDelete(event._id, { session });
+        await Event.deleteOne({ _id : event._id }, { session });
 
         await session.commitTransaction();
 
@@ -174,7 +177,6 @@ export const updateEvent = async (req, res) => {
         }
 
         const updatedEvent = await Event.findByIdAndUpdate(eventId, data, { new: true });
-        console.log(updateEvent);
 
         return res.json({
             success: true,
@@ -196,21 +198,24 @@ export const getEvents = async (req, res) => {
         const AUTHOR_SAFE_DATA = "name profileImageUrl";
         let { page, limit } = req.query;
 
-        page = page || 1;
-        limit = limit || 10;
+        page = parseInt(page) || 1;
+        limit = parseInt(limit) || 10;
         let skip = (page - 1) * limit;
+
+        const totalEvents = await Event.countDocuments({});
 
         const events = await Event.find({})
             .sort({ 'createdAt': -1 })
             .skip(skip)
             .limit(limit)
             .populate('author', AUTHOR_SAFE_DATA)
-            .lean();
+            .lean()
 
         if (events.length === 0) {
             return res.status(404).json({
                 success: true,
                 message: "No events found",
+                events : []
             });
         }
 
@@ -218,6 +223,8 @@ export const getEvents = async (req, res) => {
             success: true,
             message: "Events fetched successfully",
             events,
+            page,
+            totalPages : Math.ceil(totalEvents / limit),
         });
 
     } catch (error) {

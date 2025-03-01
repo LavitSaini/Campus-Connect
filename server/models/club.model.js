@@ -43,6 +43,8 @@ const clubSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+clubSchema.index({ createdAt : -1 });
+
 const Club = mongoose.model("Club", clubSchema);
 
 export default Club
