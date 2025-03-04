@@ -16,7 +16,7 @@ const clubSchema = new mongoose.Schema({
         trim: true,
         required: true,
     },
-    profileImageUrl : {
+    clubImageUrl : {
         type : String,
         default : ''
     },

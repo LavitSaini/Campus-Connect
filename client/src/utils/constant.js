@@ -16,11 +16,6 @@ export const navLinks = [
     label: "Clubs",
     path: "/clubs",
   },
-  {
-    id: 4,
-    label: "Join Teams",
-    path: "/",
-  },
 ];
 
 export const works = [
@@ -46,3 +41,16 @@ export const works = [
     icon: Bell,
   },
 ];
+
+export const dashboardSidebarLabels = [
+  {
+    id: 1,
+    text: "events"
+  },
+  {
+    id: 2,
+    text: "clubs"
+  }
+]
+
+export const departments = ["CCT", "CEC", "CCE", "CCP", "CBSA", "CCH", "CCHM"]

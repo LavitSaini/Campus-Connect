@@ -1,79 +1,101 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        minLength: [3, "Name should be minimum of length 3"],
-        required: [true, "Name is required"],
-        trim: true,
+      type: String,
+      minLength: [3, "Name should be minimum of length 3"],
+      required: [true, "Name is required"],
+      trim: true,
     },
     email: {
-        type: String,
-        required: [true, "Email is required"],
-        trim: true,
-        unique: true,
+      type: String,
+      required: [true, "Email is required"],
+      trim: true,
+      unique: true,
     },
     password: {
-        type: String,
-        minLength: [6, "Password should be minimum of length 6"],
-        required: [true, "Password is required"],
-        trim: true,
+      type: String,
+      minLength: [6, "Password should be minimum of length 6"],
+      required: [true, "Password is required"],
+      trim: true,
     },
     department: {
-        type: String,
-        required: true,
-        enum: ["CEC", "CCT", "CCE", "CCP", "CBSA", "CCH", "CCHM"],
+      type: String,
+      required: true,
+      enum: ["CEC", "CCT", "CCE", "CCP", "CBSA", "CCH", "CCHM"],
     },
     role: {
-        type: String,
-        trim: true,
-        enum: ["student", "admin"],
-        default: "student",
+      type: String,
+      trim: true,
+      enum: ["student", "admin"],
+      default: "student",
     },
     profileImageUrl: {
-        type: String,
-        trim: true,
-        default: "",
+      type: String,
+      trim: true,
+      default: "",
     },
     events: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Event",
-        },
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Event",
+      },
     ],
-    followingClubs: [{
+    attendedEvents: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Club',
-    }],
-    adminAtClubs: [{
+        ref: "Event",
+      },
+    ],
+    followingClubs: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Club',
-    }],
-}, {
-    timestamps: true
+        ref: "Club",
+      },
+    ],
+    adminAtClubs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Club",
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+userSchema.pre("save", async function () {
+  const user = this;
+  if (!user.isModified("password")) {
+    return;
+  }
+  user.password = await bcrypt.hash(user.password, 10);
+
+  if (this.role !== "admin") {
+    this.events = undefined;
+    this.adminAtClubs = undefined;
+  } else {
+    this.attendedEvents = undefined;
+  }
 });
 
+userSchema.set("toJSON", {
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret.password;
 
-userSchema.pre('save', async function () {
-    const user = this;
-    if (!user.isModified('password')) {
-        return;
+    if (ret.role === "student") {
+      delete ret.events;
+      delete ret.adminAtClubs;
+    } else {
+      delete ret.attendedEvents;
     }
-    user.password = await bcrypt.hash(user.password, 10);
+  },
 });
 
-userSchema.set('toJSON', {
-    versionKey: false,
-    transform: function (doc, ret) {
-        delete ret.password;
-
-        if (ret.role === "student") {
-            delete ret.events;
-        }
-    }
-});
-
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;

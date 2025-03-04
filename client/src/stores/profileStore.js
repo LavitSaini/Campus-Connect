@@ -1,0 +1,36 @@
+import toast from "react-hot-toast";
+import axiosInstance from "../utils/axios";
+import { create } from "zustand";
+import useAuthStore from "./authStore";
+
+const useProfileStore = create((set) => ({
+  profileData: null,
+  isProfileFetched: false,
+  isUpdatingProfile: false,
+
+  getProfile: async () => {
+    try {
+      const res = await axiosInstance.get("/api/auth/profile");
+      set({ profileData: res.data, isProfileFetched: true });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  },
+
+  updateProfile: async (data) => {
+    set({ isUpdatingProfile: true });
+    try {
+      const res = await axiosInstance.post("/api/auth/update-profile", data);
+      console.log(res);
+      set({ profileData: res.data.profile });
+      useAuthStore.getState().setAuthUser(res.data.profile)
+      toast.success("Porfile Updated Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isUpdatingProfile: false });
+    }
+  },
+}));
+
+export default useProfileStore;

@@ -95,8 +95,18 @@ export default {
       screens: {
         'lg': { 'min': '869px' },
         'custom-lg': { 'min': '969px' }
+      },
+      boxShadow: {
+        'box': '0px 2px 4px rgba(0, 0, 0, 0.18)',
+      },
+      gridColumn: {
+        "span-14": "span 14 / span 14",
+        "span-13": "span 13 / span 13",
+      },
+      display: {
+        "webkit-box": "-webkit-box",
       }
     },
   },
-  plugins: [require("daisyui")],
+  plugins: [],
 };

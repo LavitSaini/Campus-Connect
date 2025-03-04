@@ -7,10 +7,10 @@ import { works } from "../utils/constant";
 
 const HomePage = () => {
   return (
-    <div>
+    <>
       <Header active="home" />
       <main>
-        <section className="relative bg-primary-50 bg-[url('/assets/images/hero.png')] bg-cover bg-center bg-no-repeat">
+        <section className="relative bg-primary-50 bg-[url('../assets/images/hero.png')] bg-cover bg-center bg-no-repeat">
           <div className="absolute inset-0 bg-black bg-opacity-60"></div>
 
           <div className="relative w-full max-w-[72rem] mx-auto px-6 py-12 md:py-12 xl:py-16 lg:px-10">
@@ -60,7 +60,7 @@ const HomePage = () => {
         </section>
       </main>
       <Footer />
-    </div>
+    </>
   );
 };
 

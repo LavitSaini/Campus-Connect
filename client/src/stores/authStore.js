@@ -1,11 +1,73 @@
+import toast from "react-hot-toast";
+import axiosInstance from "../utils/axios";
 import { create } from "zustand";
 
-const useAuthStore = create(() => ({
+const useAuthStore = create((set) => ({
   authUser: null,
   isUserAuthenticating: false,
+  isCheckingAuth: false,
+  previousLocation: null,
+  isAdminUsersFetched: false,
 
-  login: async (data) => {},
-  signup: async (data) => {},
+  setAuthUser: (data) => set({ authUser: data }),
+  setPreviousLocation: (location) => set({ previousLocation: location }),
+
+  checkAuth: async () => {
+    set({ isCheckingAuth: true });
+    try {
+      const res = await axiosInstance.get("/api/auth/check");
+      set({ authUser: res.data });
+    } catch (error) {
+      set({ authUser: null });
+    } finally {
+      set({ isCheckingAuth: false });
+    }
+  },
+
+  login: async (data) => {
+    set({ isUserAuthenticating: true });
+    try {
+      const res = await axiosInstance.post("/api/auth/login", data);
+      set({ authUser: res.data.user });
+      toast.success("Login Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isUserAuthenticating: false });
+    }
+  },
+  signup: async (data) => {
+    set({ isUserAuthenticating: true });
+    try {
+      const res = await axiosInstance.post("/api/auth/signup", data);
+      set({ authUser: res.data.user });
+      toast.success("Account Created Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isUserAuthenticating: false });
+    }
+  },
+
+  logout: async () => {
+    try {
+      await axiosInstance.post("/api/auth/logout");
+      set({ authUser: null });
+      toast.success("Logout Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  },
+
+  getAdminUsers: async () => {
+    try {
+      const res = await axiosInstance.get("/api/auth/admins");
+      set({ isAdminUsersFetched: true });
+      return res.data.adminUsers;
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  },
 }));
 
 export default useAuthStore;

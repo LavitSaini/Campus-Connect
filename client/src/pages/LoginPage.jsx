@@ -16,11 +16,11 @@ const LoginPage = () => {
 
   const validateForm = () => {
     if (!formData.email.trim()) return toast.error("Email is required!");
-    if (!/\S+@\S+\.\S+/.test(formData.email))
+    if (!/^[a-zA-Z0-9._%+-]+@cgc\.edu\.in$/.test(formData.email))
       return toast.error("Invalid email format");
     if (!formData.password.trim()) return toast.error("Password is required!");
     if (formData.password.length < 6)
-      return toast.error("Password must be at least 6 characters");
+      return toast.error("Password should be a minimum of length 6!");
 
     return true;
   };
@@ -47,44 +47,50 @@ const LoginPage = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-medium">Email</span>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-0.5">
+            <label className="text-neutral-800 text-[0.95rem] font-[500]" htmlFor="email">
+              Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-base-content/40" />
+                <Mail className="h-5 w-5 text-neutral-800" />
               </div>
               <input
                 type="email"
-                className={`input input-bordered w-full pl-10`}
-                placeholder="you@example.com"
+                className="w-full pl-10 pr-3 py-2 border border-neutral-800 rounded-lg bg-white text-black placeholder-gray-500 
+             focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="you@cgc.edu.in"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
+                name="email"
+                id="email"
                 required
               />
             </div>
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-medium">Password</span>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-neutral-800 text-[0.95rem] font-[500]" htmlFor="password">
+              Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-base-content/40" />
+                <Lock className="h-5 w-5 text-neutral-800" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
-                className={`input input-bordered w-full pl-10`}
+                className="w-full pl-10 pr-3 py-2 border border-neutral-800 rounded-lg bg-white text-black placeholder-gray-500 
+             focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
+                id="password"
+                autoComplete="current_password"
                 required
               />
               <button
@@ -103,7 +109,7 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="btn w-full text-primary-500 border-2 border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white hover:border-primary-500 mt-5"
+            className="flex justify-center items-center gap-1.5 w-full text-primary-500 border-2 rounded-md py-2 mt-2 border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white hover:border-primary-500"
             disabled={isUserAuthenticating}
           >
             {isUserAuthenticating ? (
@@ -118,7 +124,7 @@ const LoginPage = () => {
         </form>
 
         <div className="text-center">
-          <p className="text-base-content/60">
+          <p className="text-neutral-800">
             Don&apos;t have an account?{" "}
             <Link to="/signup" className="underline text-primary-500">
               Create new account

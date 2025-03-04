@@ -4,14 +4,19 @@ import User from "../models/user.model.js";
 import { sendEventEmail } from "../utils/event.utils.js";
 import cloudinary from "../lib/cloudinary.js";
 import slugify from "slugify";
+<<<<<<< HEAD
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from "mongoose";
+=======
+import { v4 as uuidv4 } from "uuid";
+>>>>>>> 3b56f35 (Frontend Updated)
 
 export const createEvent = async (req, res) => {
-    try {
-        const admin = req.user;
-        const data = req.body;
+  try {
+    const admin = req.user;
+    const data = req.body;
 
+<<<<<<< HEAD
         if (!data.title || !data.date || !data.location || !data.category) {
             return res.status(400).json({
                 success: false,
@@ -78,18 +83,93 @@ export const createEvent = async (req, res) => {
             success: false,
             message: "Unknown error occurred while creating event"
         })
+=======
+    if (!data.title || !data.date || !data.location || !data.category) {
+      return res.status(400).json({
+        success: false,
+        message: "title, date, category and location are required",
+      });
+>>>>>>> 3b56f35 (Frontend Updated)
     }
-}
+
+    // upload image on cloudinary
+    if (data.eventImage) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(data.eventImage, {
+          format: "webp",
+          folder: "event_images"
+        });
+        data["eventImageUrl"] = uploadRes.secure_url;
+      } catch (error) {
+        console.log(error);
+        console.log("Error coming while uploading course image", error.message);
+        throw error;
+      }
+    }
+
+    let club;
+    if (data.club) {
+      club = await Club.findOne({
+        _id: data.club,
+        "admins.admin": { $in: [admin._id] },
+      });
+
+      if (!club) {
+        return res.status(404).json({
+          success: false,
+          message: "Club not found",
+        });
+      }
+    }
+
+    const titleSlug = slugify(data.title, { lower: true, strict: true });
+    data["titleSlug"] = `${titleSlug}-${uuidv4().slice(0, 8)}`;
+    data["author"] = admin._id;
+
+    const event = await Event.create(data);
+
+    if (club) {
+      club.events.push(event._id);
+      await club.save();
+    }
+
+    // run an async task to notify all the subscribe users about the event
+
+    admin.events.push(event._id);
+    await admin.save();
+
+    sendEventEmail(event).catch((error) => {
+      console.error("Failed to send emails:", error);
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Event created successfully",
+    });
+  } catch (error) {
+    console.log("Error coming while creating event", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Unknown error occurred while creating event",
+    });
+  }
+};
 
 export const deleteEvent = async (req, res) => {
+<<<<<<< HEAD
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
         const admin = req.user;
+=======
+  try {
+    const admin = req.user;
+>>>>>>> 3b56f35 (Frontend Updated)
 
-        const { eventId } = req.params;
+    const { eventId } = req.params;
 
+<<<<<<< HEAD
         if (!eventId) {
             await session.abortTransaction();
 
@@ -139,15 +219,57 @@ export const deleteEvent = async (req, res) => {
         });
     } finally {
         session.endSession();
+=======
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: "EventId is required",
+      });
+>>>>>>> 3b56f35 (Frontend Updated)
     }
-}
+
+    const event = await Event.findOne({ _id: eventId, author: admin._id });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    // pull object events from admin
+    await User.findByIdAndUpdate(admin._id, {
+      $pull: { events: event._id },
+    });
+
+    if (event.club) {
+      await Club.findByIdAndUpdate(event.club, {
+        $pull: { events: event._id },
+      });
+    }
+
+    await Event.findByIdAndDelete(event._id);
+
+    return res.json({
+      success: true,
+      message: "Event deleted successfully",
+    });
+  } catch (error) {
+    console.log("Error coming while deleting event", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Unknown error occurred while deleting event",
+    });
+  }
+};
 
 export const updateEvent = async (req, res) => {
-    try {
-        const admin = req.user;
-        const { eventId } = req.params;
-        const data = req.body;
+  try {
+    const admin = req.user;
+    const { eventId } = req.params;
+    const data = req.body;
 
+<<<<<<< HEAD
         if (!eventId) {
             return res.status(400).json({
                 success: false,
@@ -190,14 +312,60 @@ export const updateEvent = async (req, res) => {
             success: false,
             message: "Unknown error occurred while updating event"
         })
+=======
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: "EventId is required",
+      });
+>>>>>>> 3b56f35 (Frontend Updated)
     }
-}
+
+    const event = await Event.findOne({ _id: eventId, author: admin._id });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    if (data.eventImageUrl) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(data.eventImageUrl);
+        data["eventImageUrl"] = uploadRes.secure_url;
+      } catch (error) {
+        console.log(error);
+        console.log("Error coming while uploading course image", error.message);
+        throw error;
+      }
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, data, {
+      new: true,
+    });
+    console.log(updateEvent);
+
+    return res.json({
+      success: true,
+      message: "Event updated successfully",
+      event: updatedEvent,
+    });
+  } catch (error) {
+    console.log("Error coming while updating event", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Unknown error occurred while updating event",
+    });
+  }
+};
 
 export const getEvents = async (req, res) => {
-    try {
-        const AUTHOR_SAFE_DATA = "name profileImageUrl";
-        let { page, limit } = req.query;
+  try {
+    const AUTHOR_SAFE_DATA = "name profileImageUrl";
+    // let { page, limit } = req.query;
 
+<<<<<<< HEAD
         page = parseInt(page) || 1;
         limit = parseInt(limit) || 10;
         let skip = (page - 1) * limit;
@@ -233,5 +401,64 @@ export const getEvents = async (req, res) => {
             success: false,
             message: "Unknown error occurred while getting events"
         })
+=======
+    // page = page || 1;
+    // limit = limit || 10;
+    // let skip = (page - 1) * limit;
+
+    const events = await Event.find({}).populate("author", AUTHOR_SAFE_DATA)
+      // .sort({ createdAt: -1 })
+      // .skip(skip)
+      // .limit(limit)
+      // .lean();
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        success: true,
+        message: "No events found",
+      });
+>>>>>>> 3b56f35 (Frontend Updated)
     }
+
+    return res.json({
+      success: true,
+      message: "Events fetched successfully",
+      events,
+    });
+  } catch (error) {
+    console.log("Error coming while getting events", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Unknown error occurred while getting events",
+    });
+  }
+};
+
+export const getSingleEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  const AUTHOR_SAFE_DATA = "name profileImageUrl";
+
+  try {
+    const event = await Event.findById({ _id: eventId })
+      .populate("author", AUTHOR_SAFE_DATA)
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      event,
+    });
+  } catch (error) {
+    console.log("Error coming while fetching event", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 }
