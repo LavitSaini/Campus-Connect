@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { CalendarDays, Loader2, MapPin, User } from "lucide-react";
+import {Link} from 'react-router-dom'
 
 const SingleEventPage = () => {
   const { eventId } = useParams();
@@ -12,7 +13,6 @@ const SingleEventPage = () => {
   useEffect(() => {
     getSingleEvent(eventId);
   }, []);
-
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -52,9 +52,13 @@ const SingleEventPage = () => {
                     <h1 className="text-3xl text-primary-500 font-semibold text-primary-600">
                       {event.title}
                     </h1>
-                    <button className="bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-600 hover:bg-primary-300">
-                      Register Now
-                    </button>
+                    {event.registrationUrl ? (
+                      <Link target="_blank" to={event.registrationUrl} className="bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-600 hover:bg-primary-300">
+                        Register Now
+                      </Link>
+                    ) : (
+                      <div className="bg-gray-300 text-neutral-600 px-4 py-2 rounded-md">No Registration Yet</div>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-4">
@@ -93,7 +97,10 @@ const SingleEventPage = () => {
                       className="w-8 rounded-full border border-primary-500"
                     />
                     <span className="text-gray-600">
-                      Hosted by <strong className="text-primary-500">{event.author.name}</strong>
+                      Hosted by{" "}
+                      <strong className="text-primary-500">
+                        {event.author.name}
+                      </strong>
                     </span>
                   </div>
                 </div>

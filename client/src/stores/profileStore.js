@@ -14,6 +14,7 @@ const useProfileStore = create((set) => ({
       set({ profileData: res.data, isProfileFetched: true });
     } catch (error) {
       toast.error(error.response.data.message);
+      useAuthStore.getState().setAuthUser(null);
     }
   },
 

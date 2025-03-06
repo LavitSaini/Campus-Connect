@@ -41,4 +41,6 @@ export const adminValidationSchema = Joi.object({
     .messages({
       "string.pattern.base": "Invalid Base64 image format",
     }),
+
+  secret: Joi.string().optional().allow(""),
 });

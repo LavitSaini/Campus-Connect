@@ -16,6 +16,7 @@ const CreateEventPage = () => {
     location: "",
     date: "",
     club: "",
+    registrationUrl: ""
   });
 
   const navigate = useNavigate();
@@ -174,53 +175,53 @@ const CreateEventPage = () => {
               </div>
 
               {/* category Input */}
-              <div className="flex flex-col gap-2.5 items-start">
-                <div className="relative w-full">
-                  <input
-                    type="text"
-                    placeholder="Category (e.g. Tech, Cultural)"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-[1px] focus:ring-primary-500"
-                    value={categoryText}
-                    onChange={(e) => setCategoryText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddCategory();
-                      }
-                    }}
-                  />
-                  {categoryText && (
-                    <button
-                      type="button"
-                      onClick={handleAddCategory}
-                      className="absolute top-[50%] -translate-y-[50%] right-2 bg-primary-500 px-3 py-1.5 rounded-md text-white hover:bg-primary-300 transition-colors text-sm"
-                    >
-                      Add
-                    </button>
+              <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2.5 items-start">
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      placeholder="Category (e.g. Tech, Cultural)"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-[1px] focus:ring-primary-500"
+                      value={categoryText}
+                      onChange={(e) => setCategoryText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCategory();
+                        }
+                      }}
+                    />
+                    {categoryText && (
+                      <button
+                        type="button"
+                        onClick={handleAddCategory}
+                        className="absolute top-[50%] -translate-y-[50%] right-2 bg-primary-500 px-3 py-1.5 rounded-md text-white hover:bg-primary-300 transition-colors text-sm"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
+                  {formData.category.length > 0 && (
+                    <ul className="flex flex-wrap items-center gap-1">
+                      {formData.category.map((category) => (
+                        <li
+                          key={category}
+                          className="flex items-center gap-1.5 px-[0.5rem] py-[0.4rem] bg-primary-500 text-white text-sm rounded-sm"
+                        >
+                          <span>{category}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategory(category)}
+                            className="text-gray-300 hover:text-white"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
-                {formData.category.length > 0 && (
-                  <ul className="flex flex-wrap items-center gap-1">
-                    {formData.category.map((category) => (
-                      <li
-                        key={category}
-                        className="flex items-center gap-1.5 px-[0.5rem] py-[0.4rem] bg-primary-500 text-white text-sm rounded-sm"
-                      >
-                        <span>{category}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCategory(category)}
-                          className="text-gray-300 hover:text-white"
-                        >
-                          <X className="size-4" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
 
-              <div className="grid col-span-1 sm:grid-cols-2 gap-4">
                 <input
                   type="date"
                   name="date"
@@ -230,7 +231,9 @@ const CreateEventPage = () => {
                   onChange={handleChange}
                   required
                 />
+              </div>
 
+              <div className="grid col-span-1 sm:grid-cols-2 gap-4">
                 <select
                   name="club"
                   value={formData.club}
@@ -255,6 +258,14 @@ const CreateEventPage = () => {
                     </option>
                   ))}
                 </select>
+
+                <input
+                  type="text"
+                  name="registrationUrl"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-[1px] focus:ring-primary-500"
+                  onChange={handleChange}
+                  placeholder="Registration Url"
+                />
               </div>
 
               <button

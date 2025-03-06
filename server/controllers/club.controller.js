@@ -78,12 +78,6 @@ export const getClubs = async (req, res) => {
       .populate("events", EVENTS_SAFE_DATA)
       .populate("admins.admin", ADMINS_SAFE_DATA);
 
-    if (clubs.length === 0) {
-      return res.status(404).json({
-        success: true,
-        message: "No clubs found",
-      });
-    }
 
     return res.json({
       success: true,
@@ -214,6 +208,32 @@ export const unfollowClub = async (req, res) => {
     });
   } catch (error) {
     console.log("Error coming while unfollow club", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getUserClubs = async (req, res) => {
+  const { userId } = req.params;
+  const ADMINS_SAFE_DATA = "name profileImageUrl";
+  const FOLLOWERS_SAFE_DATA = "name profileImageUrl";
+  const EVENTS_SAFE_DATA = "title eventImageUrl";
+  try {
+    const clubs = await Club.find({ createdBy: userId })
+      .populate("followers", FOLLOWERS_SAFE_DATA)
+      .populate("events", EVENTS_SAFE_DATA)
+      .populate("admins.admin", ADMINS_SAFE_DATA);
+
+
+    return res.json({
+      success: true,
+      message: "Clubs fetched successfully",
+      clubs,
+    });
+  } catch (error) {
+    console.log("Error coming while fetching user clubs", error.message);
     return res.status(500).json({
       success: false,
       message: error.message,

@@ -23,7 +23,7 @@ export const createEvent = async (req, res) => {
       try {
         const uploadRes = await cloudinary.uploader.upload(data.eventImage, {
           format: "webp",
-          folder: "event_images"
+          folder: "event_images",
         });
         data["eventImageUrl"] = uploadRes.secure_url;
       } catch (error) {
@@ -108,10 +108,24 @@ export const deleteEvent = async (req, res) => {
       $pull: { events: event._id },
     });
 
-    if (event.club) {
-      await Club.findByIdAndUpdate(event.club, {
-        $pull: { events: event._id },
-      });
+    // Find the club that contains the event and remove it
+    await Club.updateMany(
+      { events: event._id },
+      { $pull: { events: event._id } }
+    );
+
+    if (event.eventImageUrl) {
+      try {
+        // Extract public ID from the URL
+        const urlParts = event.eventImageUrl.split("/");
+        const publicIdWithExtension = urlParts.slice(7).join("/");
+        const publicId = publicIdWithExtension.split(".")[0];
+
+        // Delete image from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
     }
 
     await Event.findByIdAndDelete(event._id);
@@ -120,6 +134,7 @@ export const deleteEvent = async (req, res) => {
       success: true,
       message: "Event deleted successfully",
     });
+
   } catch (error) {
     console.log("Error coming while deleting event", error.message);
     return res.status(500).json({
@@ -190,18 +205,12 @@ export const getEvents = async (req, res) => {
     // limit = limit || 10;
     // let skip = (page - 1) * limit;
 
-    const events = await Event.find({}).populate("author", AUTHOR_SAFE_DATA)
-      // .sort({ createdAt: -1 })
-      // .skip(skip)
-      // .limit(limit)
-      // .lean();
-
-    if (events.length === 0) {
-      return res.status(404).json({
-        success: true,
-        message: "No events found",
-      });
-    }
+    const events = await Event.find({})
+      .populate("author", AUTHOR_SAFE_DATA)
+      .sort({ createdAt: -1 })
+      .lean();
+    // .skip(skip)
+    // .limit(limit)
 
     return res.json({
       success: true,
@@ -223,8 +232,10 @@ export const getSingleEvent = async (req, res) => {
   const AUTHOR_SAFE_DATA = "name profileImageUrl";
 
   try {
-    const event = await Event.findById({ _id: eventId })
-      .populate("author", AUTHOR_SAFE_DATA)
+    const event = await Event.findById({ _id: eventId }).populate(
+      "author",
+      AUTHOR_SAFE_DATA
+    );
 
     if (!event) {
       return res.status(404).json({
@@ -244,4 +255,27 @@ export const getSingleEvent = async (req, res) => {
       message: error.message,
     });
   }
-}
+};
+
+export const getUserEvents = async (req, res) => {
+  const { userId } = req.params;
+  const AUTHOR_SAFE_DATA = "name profileImageUrl";
+  try {
+    const events = await Event.find({ author: userId })
+      .populate("author", AUTHOR_SAFE_DATA)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      success: true,
+      message: "Events fetched successfully",
+      events,
+    });
+  } catch (error) {
+    console.log("Error coming while fetching user events", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

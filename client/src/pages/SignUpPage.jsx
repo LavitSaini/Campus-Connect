@@ -9,6 +9,9 @@ import {
   Loader2,
   Building,
   Plus,
+  UserRound,
+  Shield,
+  KeyRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -24,6 +27,7 @@ const SignUpPage = () => {
     department: "CCT",
     role: "student",
     profileImage: "",
+    secret: "",
   });
 
   const [imagePreview, setImagePreview] = useState(null);
@@ -31,6 +35,10 @@ const SignUpPage = () => {
   const fileInputRef = useRef(null);
 
   const { isUserAuthenticating, signup } = useAuthStore();
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -42,7 +50,7 @@ const SignUpPage = () => {
 
     const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!validTypes.includes(file.type)) {
-      alert("Only png, jpg, jpeg and webp images are allowed.");
+      toast.error("Only png, jpg, jpeg and webp images are allowed.");
       return;
     }
 
@@ -139,7 +147,10 @@ const SignUpPage = () => {
 
           <div className="grid grid-cols-2 gap-4 items-center">
             <div className="flex flex-col gap-0.5">
-              <label className="text-neutral-800 text-[0.95rem] font-[500]" htmlFor="name">
+              <label
+                className="text-neutral-800 text-[0.95rem] font-[500]"
+                htmlFor="name"
+              >
                 Name
               </label>
               <div className="relative">
@@ -163,7 +174,10 @@ const SignUpPage = () => {
             </div>
 
             <div className="flex flex-col gap-0.5">
-              <label className="text-neutral-800 text-[0.95rem] font-[500]" htmlFor="email">
+              <label
+                className="text-neutral-800 text-[0.95rem] font-[500]"
+                htmlFor="email"
+              >
                 Email
               </label>
               <div className="relative">
@@ -189,7 +203,10 @@ const SignUpPage = () => {
 
           <div className="grid grid-cols-2 gap-4 items-center">
             <div className="flex flex-col gap-0.5">
-              <label className="text-neutral-800 text-[0.95rem] font-[500]" htmlFor="password">
+              <label
+                className="text-neutral-800 text-[0.95rem] font-[500]"
+                htmlFor="password"
+              >
                 Password
               </label>
               <div className="relative">
@@ -224,7 +241,10 @@ const SignUpPage = () => {
             </div>
 
             <div className="flex flex-col gap-0.5">
-              <label className="text-neutral-800 text-[0.95rem] font-[500]" htmlFor="department">
+              <label
+                className="text-neutral-800 text-[0.95rem] font-[500]"
+                htmlFor="department"
+              >
                 Department
               </label>
               <div className="relative">
@@ -251,37 +271,73 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          <div>
-            <label className="label">Role</label>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                className={`px-4 py-2 border rounded-md ${
-                  formData.role === "student"
-                    ? "bg-primary-500 text-white"
-                    : "bg-gray-200"
-                }`}
-                onClick={() => setFormData({ ...formData, role: "student" })}
+          <div
+            className={`grid ${
+              formData.role === "admin" ? "grid-cols-2" : "grid-cols-1"
+            } gap-4 items-center`}
+          >
+            <div className="flex flex-col gap-0.5">
+              <label
+                className="text-neutral-800 text-[0.95rem] font-[500]"
+                htmlFor="role"
               >
-                Student
-              </button>
-              <button
-                type="button"
-                className={`px-4 py-2 border rounded-md ${
-                  formData.role === "admin"
-                    ? "bg-primary-500 text-white"
-                    : "bg-gray-200"
-                }`}
-                onClick={() => setFormData({ ...formData, role: "admin" })}
-              >
-                Admin
-              </button>
+                Role
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  {formData.role === "student" ? (
+                    <UserRound className="size-5 text-neutral-800" />
+                  ) : (
+                    <Shield className="size-5 text-neutral-800" />
+                  )}
+                </div>
+                <select
+                  name="role"
+                  id="role"
+                  className="w-full pl-10 pr-3 py-2 border border-neutral-800 rounded-lg bg-white text-black placeholder-gray-500 
+             focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                >
+                  <option value="student">Student</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
             </div>
+
+            {formData.role === "admin" && (
+              <div className="flex flex-col gap-0.5">
+                <label
+                  className="text-neutral-800 text-[0.95rem] font-[500]"
+                  htmlFor="secret"
+                >
+                  Admin Secret
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <KeyRound className="size-5 text-neutral-800" />
+                  </div>
+                  <input
+                    name="secret"
+                    id="secret"
+                    placeholder="Key"
+                    className="w-full pl-10 pr-3 py-2 border border-neutral-800 rounded-lg bg-white text-black placeholder-gray-500 
+             focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                    onChange={(e) =>
+                      setFormData({ ...formData, secret: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <button
             type="submit"
-            className="flex justify-center items-center gap-1.5 w-full text-primary-500 border-2 rounded-md py-2 mt-2 border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white hover:border-primary-500"
+            className="flex justify-center items-center gap-1.5 w-full text-primary-500 border-2 rounded-md py-2 mt-5 border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white hover:border-primary-500"
             disabled={isUserAuthenticating}
           >
             {isUserAuthenticating ? (

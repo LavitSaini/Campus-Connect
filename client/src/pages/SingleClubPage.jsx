@@ -19,13 +19,23 @@ const SingleClubPage = () => {
   const { club, isClubFetched, getSingleClub, followClub, unfollowClub } =
     useClubStore();
 
+  const [clubFollowingUsersCount, setClubFollowingUsersCount] = useState(null);
+
   const [isFollowing, setIsFollowing] = useState(
     authUser.followingClubs.map((club) => club._id).includes(clubId)
   );
 
+  const [isLoadingClub, setIsLoadingClub] = useState(false);
+
   useEffect(() => {
     getSingleClub(clubId);
   }, []);
+
+  useEffect(() => {
+    if(club){
+      setClubFollowingUsersCount(club.followers.length)
+    }
+  }, [club])
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -38,12 +48,19 @@ const SingleClubPage = () => {
   };
 
   const handleClick = async () => {
-    if (isFollowing) {
-      await unfollowClub(clubId);
-    } else {
-      await followClub(clubId);
+    setIsLoadingClub(true);
+    try {
+      if (isFollowing) {
+        await unfollowClub(clubId);
+        setClubFollowingUsersCount((prev) => prev - 1);
+      } else {
+        await followClub(clubId);
+        setClubFollowingUsersCount((prev) => prev + 1);
+      }
+      setIsFollowing((prev) => !prev);
+    } finally {
+      setIsLoadingClub(false);
     }
-    setIsFollowing((prev) => !prev);
   };
 
   return (
@@ -84,7 +101,9 @@ const SingleClubPage = () => {
                           }`}
                         onClick={handleClick}
                       >
-                        {isFollowing ? (
+                        {isLoadingClub ? (
+                          <Loader2 className="size-5 animate-spin" />
+                        ) : isFollowing ? (
                           <>
                             <UserCheck className="size-5" />
                             Following
@@ -113,7 +132,7 @@ const SingleClubPage = () => {
                         Followers
                       </h3>
                       <p className="text-gray-600">
-                        {club.followers.length} Members
+                        {clubFollowingUsersCount} Members
                       </p>
                     </div>
 
@@ -164,34 +183,30 @@ const SingleClubPage = () => {
                     {club.events.length > 0 ? (
                       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {club.events.map((event) => (
-                          <li
-                            key={event._id}
-                            className="bg-white p-4 shadow-md rounded-md border flex flex-col gap-3.5 items-start"
-                          >
-                            <img
-                              src={
-                                event.eventImageUrl ||
-                                "../assets/images/image_avatar.jpg"
-                              }
-                              alt={event.title}
-                              className="w-full rounded-md aspect-[3/2] object-cover"
-                            />
-                            <div className="flex flex-col gap-1.5">
-                              <h3 className="text-lg font-semibold text-primary-500">
-                                {event.title}
-                              </h3>
-                              <div className="flex items-center gap-3 text-gray-600">
-                                <CalendarDays className="text-primary-500 size-6" />
-                                <span className="font-medium text-sm">
-                                  {formatDate(event.date)}
-                                </span>
-                              </div>
-                            </div>
+                          <li key={event._id}>
                             <Link
                               to={`/events/${event._id}`}
-                              className="text-primary-500 hover:underline text-sm"
+                              className="flex flex-col items-start gap-3.5 bg-primary-50 p-4 shadow-md rounded-md border"
                             >
-                              View Details
+                              <img
+                                src={
+                                  event.eventImageUrl ||
+                                  "../assets/images/image_avatar.jpg"
+                                }
+                                alt={event.title}
+                                className="w-full rounded-md aspect-[3/2] object-cover"
+                              />
+                              <div className="flex flex-col gap-1.5">
+                                <h3 className="text-lg font-semibold text-primary-500">
+                                  {event.title}
+                                </h3>
+                                <div className="flex items-center gap-3 text-gray-600">
+                                  <CalendarDays className="text-primary-500 size-6" />
+                                  <span className="font-medium text-sm">
+                                    {formatDate(event.date)}
+                                  </span>
+                                </div>
+                              </div>
                             </Link>
                           </li>
                         ))}

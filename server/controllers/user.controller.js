@@ -24,6 +24,14 @@ export const signUpUser = async (req, res) => {
       });
     }
 
+    if (data.role === "admin") {
+      if (!data.secret || data.secret !== process.env.ADMIN_SECRET_KEY) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Invalid admin secret key!" });
+      }
+    }
+
     // upload image on cloudinary
     if (data.profileImage) {
       try {
@@ -32,7 +40,7 @@ export const signUpUser = async (req, res) => {
             { width: 300, height: 300, crop: "fill", gravity: "face" },
           ],
           format: "webp",
-          folder: "profile_images"
+          folder: "profile_images",
         });
         data["profileImageUrl"] = uploadRes.secure_url;
       } catch (error) {
@@ -234,7 +242,7 @@ export const updateProfile = async (req, res) => {
             { width: 300, height: 300, crop: "fill", gravity: "face" },
           ],
           format: "webp",
-          folder: "profile_images"
+          folder: "profile_images",
         });
         data["profileImageUrl"] = uploadRes.secure_url;
         delete data.profileImage;

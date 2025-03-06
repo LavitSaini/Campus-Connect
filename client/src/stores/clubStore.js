@@ -1,6 +1,7 @@
 import axiosInstance from "../utils/axios";
 import toast from "react-hot-toast";
 import { create } from "zustand";
+import useAuthStore from "./authStore";
 
 const useClubStore = create((set) => ({
   clubs: [],
@@ -15,6 +16,7 @@ const useClubStore = create((set) => ({
       set({ clubs: res.data.clubs, isClubsFetched: true });
     } catch (error) {
       toast.error(error.response.data.message);
+      useAuthStore.getState().setAuthUser(null);
     }
   },
 
@@ -24,6 +26,17 @@ const useClubStore = create((set) => ({
       set({ club: res.data.club, isClubFetched: true });
     } catch (error) {
       toast.error(error.response.data.message);
+    }
+  },
+
+  getUserClubs: async (userId) => {
+    set({ isClubsFetched: false });
+    try {
+      const res = await axiosInstance.get(`/api/clubs/user/${userId}`);
+      set({ clubs: res.data.clubs, isClubsFetched: true });
+    } catch (error) {
+      toast.error(error.response.data.message);
+      useAuthStore.getState().setAuthUser(null);
     }
   },
 

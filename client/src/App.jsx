@@ -28,6 +28,10 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    console.log(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
     if (previousLocation) {
       navigate(previousLocation);
     }

@@ -5,6 +5,7 @@ import { Image, Loader2, X } from "lucide-react";
 import useAuthStore from "../stores/authStore";
 import toast from "react-hot-toast";
 import useClubStore from "../stores/clubStore";
+import { useNavigate } from "react-router-dom";
 
 const CreateClubPage = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,8 @@ const CreateClubPage = () => {
     clubImage: "",
     admins: [],
   });
+
+  const navigate = useNavigate();
 
   const [imagePreview, setImagePreview] = useState(null);
   const [adminUsers, setAdminUsers] = useState([]);
@@ -118,6 +121,7 @@ const CreateClubPage = () => {
       };
       
       await createNewClub(data);
+      navigate("/clubs");
     }
   };
 

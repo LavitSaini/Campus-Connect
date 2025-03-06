@@ -46,6 +46,10 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Club",
     },
+    registrationUrl: {
+      type: String,
+      default: ""
+    },
   },
   {
     timestamps: true,
@@ -56,10 +60,12 @@ eventSchema.set("toJSON", {
   versionKey: false,
 });
 
-eventSchema.index({ createdAt : -1 });
+eventSchema.index({ createdAt: -1 });
 
-eventSchema.set('toJSON', {
-    versionKey: false,
+eventSchema.set("toJSON", {
+  versionKey: false,
 });
 
-export default eventModel;
+const Event = mongoose.model("Event", eventSchema);
+
+export default Event;

@@ -12,7 +12,6 @@ const EventsPage = () => {
     getEvents();
   }, []);
 
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-GB", {
@@ -51,11 +50,20 @@ const EventsPage = () => {
                             {event.title}
                           </h2>
                           <p className="text-sm text-gray-600">
-                            {event.description}
+                            {event.description.length > 200
+                              ? event.description.slice(0, 200) + "..."
+                              : event.description}
                           </p>
                           {event.category.length > 0 && (
                             <ul className="flex flex-wrap items-center gap-1.5">
-                              {event.category.map((text) => <li key={text} className="px-2.5 py-1 rounded-sm bg-primary-500 text-white text-[0.75rem]">{text}</li>)}
+                              {event.category.map((text) => (
+                                <li
+                                  key={text}
+                                  className="px-2.5 py-1 rounded-sm bg-primary-500 text-white text-[0.75rem]"
+                                >
+                                  {text}
+                                </li>
+                              ))}
                             </ul>
                           )}
                           <div className="flex items-center gap-2">
