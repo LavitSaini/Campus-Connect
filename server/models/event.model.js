@@ -56,14 +56,10 @@ eventSchema.set("toJSON", {
   versionKey: false,
 });
 
-<<<<<<< HEAD
 eventSchema.index({ createdAt : -1 });
 
 eventSchema.set('toJSON', {
     versionKey: false,
 });
-=======
-const eventModel = new mongoose.model("Event", eventSchema);
->>>>>>> 3b56f35 (Frontend Updated)
 
 export default eventModel;

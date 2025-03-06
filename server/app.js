@@ -3,10 +3,7 @@ import { createServer } from 'node:http';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-<<<<<<< HEAD
-=======
 import logger from "morgan";
->>>>>>> 3b56f35 (Frontend Updated)
 dotenv.config();
 
 import { initializeSocket } from './lib/socket.js';
@@ -21,10 +18,7 @@ import messageRouter from './routes/message.route.js';
 const app = express();
 const server = createServer(app);
 
-<<<<<<< HEAD
-=======
 app.use(logger('dev'));
->>>>>>> 3b56f35 (Frontend Updated)
 app.use(express.json({
     limit: "5MB"
 }));
