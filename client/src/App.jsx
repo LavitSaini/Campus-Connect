@@ -15,6 +15,8 @@ import ClubsPage from "./pages/ClubsPage";
 import CreateClubPage from "./pages/CreateClubPage";
 import SingleEventPage from "./pages/SingleEventPage";
 import SingleClubPage from "./pages/SingleClubPage";
+import EditEventPage from "./pages/EditEventPage";
+import EditClubPage from "./pages/EditClubPage";
 
 const App = () => {
   const { isCheckingAuth, authUser, checkAuth, previousLocation } =
@@ -26,11 +28,7 @@ const App = () => {
   useEffect(() => {
     checkAuth();
   }, []);
-
-  useEffect(() => {
-    console.log(authUser);
-  }, [authUser]);
-
+  
   useEffect(() => {
     if (previousLocation) {
       navigate(previousLocation);
@@ -116,6 +114,36 @@ const App = () => {
             authUser ? (
               authUser.role === "admin" ? (
                 <CreateClubPage />
+              ) : (
+                <Navigate to="/" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="/events/edit/:eventId"
+          element={
+            authUser ? (
+              authUser.role === "admin" ? (
+                <EditEventPage />
+              ) : (
+                <Navigate to="/" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="/clubs/edit/:clubId"
+          element={
+            authUser ? (
+              authUser.role === "admin" ? (
+                <EditClubPage />
               ) : (
                 <Navigate to="/" />
               )

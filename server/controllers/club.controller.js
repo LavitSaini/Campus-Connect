@@ -1,5 +1,6 @@
 import Club from "../models/club.model.js";
 import User from "../models/user.model.js";
+import Event from "../models/event.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import slugify from "slugify";
 import { v4 as uuidv4 } from "uuid";
@@ -67,6 +68,154 @@ export const createClub = async (req, res) => {
   }
 };
 
+export const deleteClub = async (req, res) => {
+  const { clubId } = req.params;
+  const admin = req.user;
+  try {
+    if (!clubId) {
+      return res.status(400).json({
+        success: false,
+        message: "Club Id is required",
+      });
+    }
+
+    const club = await Club.findOne({ _id: clubId, createdBy: admin._id });
+
+    if (!club) {
+      return res.status(404).json({
+        success: false,
+        message: "Club not found",
+      });
+    }
+
+    // Remove the club ID from the `adminAtClubs` field in User model
+    await User.updateMany(
+      { adminAtClubs: clubId },
+      { $pull: { adminAtClubs: clubId } }
+    );
+
+    await Event.updateMany({ club: clubId }, { club: null });
+
+    if (club.clubImageUrl) {
+      try {
+        // Extract public ID from the URL
+        const urlParts = club.clubImageUrl.split("/");
+        const publicIdWithExtension = urlParts.slice(7).join("/");
+        const publicId = publicIdWithExtension.split(".")[0];
+
+        // Delete image from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
+    }
+
+    await Club.findByIdAndDelete(club._id);
+
+    return res.json({
+      success: true,
+      message: "Club deleted successfully",
+    });
+  } catch (error) {
+    console.log("Error coming while deleting club", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateClub = async (req, res) => {
+  try {
+    const { clubId } = req.params;
+    const admin = req.user;
+    const data = req.body;
+
+    if (!clubId) {
+      return res.status(400).json({
+        success: false,
+        message: "ClubId is required",
+      });
+    }
+
+    const club = await Club.findOne({ _id: clubId, createdBy: admin._id });
+
+    if (!club) {
+      return res.status(404).json({
+        success: false,
+        message: "Club not found",
+      });
+    }
+
+    // upload new image if it is present in data
+    if (data.clubImage) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(data.clubImage, {
+          format: "webp",
+          folder: "club_images",
+        });
+        data["clubImageUrl"] = uploadRes.secure_url;
+        console.log("New Event Image Uploaded!");
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
+    // delete old image of event if it present in data (if no new image is provided then not delete old image)
+    if (data.oldClubImage && data.clubImage) {
+      try {
+        // Extract public ID from the URL
+        const urlParts = data.oldClubImage.split("/");
+        const publicIdWithExtension = urlParts.slice(7).join("/");
+        const publicId = publicIdWithExtension.split(".")[0];
+
+        // Delete image from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+        console.log("Old Event Image Deleted!");
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
+    }
+
+    // remove clubId from adminAtClubs field of oldClub admin users
+    club.admins.forEach((obj) => {
+      User.findByIdAndUpdate(obj.admin, {
+        $pull: { adminAtClubs: club._id },
+      }).exec();
+    });
+
+    // add clubId in adminAtClubs field from admin users of data
+    data.admins.forEach((obj) => {
+      User.findByIdAndUpdate(obj.admin, {
+        $addToSet: { adminAtClubs: club._id },
+      }).exec();
+    });
+
+    const nameSlug = slugify(data.name, { lower: true, strict: true });
+    data["nameSlug"] = `${nameSlug}-${uuidv4().slice(0, 8)}`;
+
+    delete data.clubImage;
+    delete data.oldClubImage;
+
+    const updatedClub = await Club.findByIdAndUpdate(clubId, data, {
+      new: true,
+    });
+    console.log(updatedClub);
+
+    return res.json({
+      success: true,
+      message: "Club updated successfully",
+      event: updatedClub,
+    });
+  } catch (error) {
+    console.log("Error coming while updating club", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export const getClubs = async (req, res) => {
   try {
     const ADMINS_SAFE_DATA = "name profileImageUrl";
@@ -76,8 +225,9 @@ export const getClubs = async (req, res) => {
     const clubs = await Club.find({})
       .populate("followers", FOLLOWERS_SAFE_DATA)
       .populate("events", EVENTS_SAFE_DATA)
-      .populate("admins.admin", ADMINS_SAFE_DATA);
-
+      .populate("admins.admin", ADMINS_SAFE_DATA)
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json({
       success: true,
@@ -225,7 +375,6 @@ export const getUserClubs = async (req, res) => {
       .populate("followers", FOLLOWERS_SAFE_DATA)
       .populate("events", EVENTS_SAFE_DATA)
       .populate("admins.admin", ADMINS_SAFE_DATA);
-
 
     return res.json({
       success: true,

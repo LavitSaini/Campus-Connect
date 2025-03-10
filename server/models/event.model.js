@@ -42,9 +42,10 @@ const eventSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    clubs: {
+    club: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Club",
+      default: null
     },
     registrationUrl: {
       type: String,
@@ -61,10 +62,6 @@ eventSchema.set("toJSON", {
 });
 
 eventSchema.index({ createdAt: -1 });
-
-eventSchema.set("toJSON", {
-  versionKey: false,
-});
 
 const Event = mongoose.model("Event", eventSchema);
 

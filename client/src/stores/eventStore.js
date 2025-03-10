@@ -45,6 +45,7 @@ const useEventStore = create((set) => ({
 
   createNewEvent: async (data) => {
     set({ isCreatingEvent: true });
+    console.log(data);
     try {
       await axiosInstance.post("/api/events", data);
       toast.success("Event Created Success!");
@@ -64,6 +65,18 @@ const useEventStore = create((set) => ({
       toast.error(error.response.data.message);
     } finally {
       set({ isDeletingEvent: false });
+    }
+  },
+
+  updateEvent: async (eventId, data) => {
+    set({ isUpdatingEvent: true });
+    try {
+      await axiosInstance.patch(`/api/events/${eventId}`, data);
+      toast.success("Event Updated Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isUpdatingEvent: false });
     }
   },
 }));

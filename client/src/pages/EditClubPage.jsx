@@ -5,17 +5,19 @@ import { Image, Loader2, X } from "lucide-react";
 import useAuthStore from "../stores/authStore";
 import toast from "react-hot-toast";
 import useClubStore from "../stores/clubStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-const CreateClubPage = () => {
+const EditClubPage = () => {
+  const { clubId } = useParams();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     clubImage: "",
     admins: [],
+    oldClubImage: "",
   });
-
-  const navigate = useNavigate();
 
   const [imagePreview, setImagePreview] = useState(null);
   const [adminUsers, setAdminUsers] = useState([]);
@@ -25,8 +27,10 @@ const CreateClubPage = () => {
 
   const fileInputRef = useRef(null);
 
+  const { authUser } = useAuthStore();
   const { isAdminUsersFetched, getAdminUsers } = useAuthStore();
-  const { isCreatingClub, createNewClub } = useClubStore();
+  const { club, isClubFetched, getSingleClub, isUpdatingClub, updateClub } =
+    useClubStore();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,11 +42,28 @@ const CreateClubPage = () => {
       const adminUsers = await getAdminUsers();
       setAdminUsers(adminUsers);
     };
+    getSingleClub(clubId);
     fetchAdminUsers();
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (club) {
+      setFormData({
+        name: club.name,
+        description: club.description,
+        admins: club.admins.map((obj) => obj.admin),
+        oldClubImage: club.clubImageUrl ? club.clubImageUrl : "",
+      });
+      console.log(formData);
+    }
+  }, [club]);
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -119,20 +140,20 @@ const CreateClubPage = () => {
           return { admin: user._id };
         }),
       };
-      
-      await createNewClub(data);
-      navigate("/clubs");
+
+      await updateClub(data, clubId);
+      navigate("/dashboard", { state: { activeTab: "clubs" } });
     }
   };
 
   return (
     <>
-      <Header active="create-club" />
+      <Header />
       <main>
         <div className="w-full max-w-[72rem] mx-auto py-10 px-6 lg:px-10">
           <div className="p-8 bg-primary-50 shadow-lg rounded-md border">
             <h2 className="text-2xl font-semibold mb-6 text-primary-500 sm:text-3xl">
-              Create New Club
+              Edit Club
             </h2>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -157,28 +178,34 @@ const CreateClubPage = () => {
 
                 <div className="relative" ref={dropdownRef}>
                   <div
-                    className="w-full p-3 border border-gray-300 rounded-md bg-white cursor-pointer"
+                    className="w-full p-3 border border-gray-300 rounded-md bg-white cursor-pointer min-h-[50px]"
                     onClick={() => setShowDropdown(!showDropdown)}
                   >
-                    {formData.admins.length === 0 ? (
+                    {formData.admins.length === 1 &&
+                    formData.admins[0]._id === authUser._id ? (
                       <span className="text-gray-400">Select Admins</span>
                     ) : (
                       <ul className="flex flex-wrap gap-2">
-                        {formData.admins.map((user) => (
-                          <li
-                            key={user._id}
-                            className="flex items-center gap-1.5 bg-primary-500 text-white px-2 py-[0.3rem] rounded-md text-sm"
-                          >
-                            <span>{user.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveAdminUser(user._id)}
-                              className="text-gray-300 hover:text-white"
-                            >
-                              <X className="size-4" />
-                            </button>
-                          </li>
-                        ))}
+                        {formData.admins.map(
+                          (user) =>
+                            authUser._id !== user._id && (
+                              <li
+                                key={user._id}
+                                className="flex items-center gap-1.5 bg-primary-500 text-white px-2 py-[0.3rem] rounded-md text-sm"
+                              >
+                                <span>{user.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveAdminUser(user._id)
+                                  }
+                                  className="text-gray-300 hover:text-white"
+                                >
+                                  <X className="size-4" />
+                                </button>
+                              </li>
+                            )
+                        )}
                       </ul>
                     )}
                   </div>
@@ -202,7 +229,7 @@ const CreateClubPage = () => {
                               className="w-8 rounded-full"
                               src={
                                 user.profileImageUrl ||
-                                "../assets/images/avatar.png"
+                                "/assets/images/avatar.png"
                               }
                               alt={user.name}
                             />
@@ -217,23 +244,35 @@ const CreateClubPage = () => {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-7">
                 <div className="col-span-1 sm:col-span-3 relative group custom-lg:col-span-2">
-                  <img
-                    src={imagePreview || "../assets/images/image_avatar.jpg"}
-                    alt="Porfile"
-                    className="w-full h-44 object-cover border border-gray-300 rounded-md group-hover:border-primary-500"
-                  />
-                  <button
-                    type="button"
-                    className="hidden items-center shadow-md border gap-3 px-3 py-1.5 bg-primary-500 text-white rounded-md absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 hover:bg-primary-300 group-hover:flex"
-                    onClick={() => {
-                      if (fileInputRef.current) {
-                        fileInputRef.current.click();
-                      }
-                    }}
-                  >
-                    <span>Upload</span>
-                    <Image className="size-5" />
-                  </button>
+                  {isClubFetched ? (
+                    <div className="relative group">
+                      <img
+                        src={
+                          imagePreview ||
+                          club?.clubImageUrl ||
+                          "/assets/images/image_avatar.jpg"
+                        }
+                        alt={club.name}
+                        className="w-full h-44 object-cover border border-gray-300 rounded-md group-hover:border-primary-500"
+                      />
+                      <button
+                        type="button"
+                        className="hidden items-center shadow-md border gap-3 px-3 py-1.5 bg-primary-500 text-white rounded-md absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 hover:bg-primary-300 group-hover:flex"
+                        onClick={() => {
+                          if (fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                      >
+                        <span>Upload</span>
+                        <Image className="size-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-full flex justify-center items-center">
+                      <Loader2 className="size-5 text-primary-500 animate-spin" />
+                    </div>
+                  )}
                 </div>
 
                 <textarea
@@ -251,13 +290,13 @@ const CreateClubPage = () => {
                 type="submit"
                 className="w-full flex justify-center items-center gap-3 bg-primary-500 text-white p-3 rounded-md text-lg font-semibold transition-colors hover:bg-primary-300"
               >
-                {isCreatingClub ? (
+                {isUpdatingClub ? (
                   <>
+                    Updating...
                     <Loader2 className="size-6 animate-spin" />
-                    Creating...
                   </>
                 ) : (
-                  "Create"
+                  "Update"
                 )}
               </button>
             </form>
@@ -269,4 +308,4 @@ const CreateClubPage = () => {
   );
 };
 
-export default CreateClubPage;
+export default EditClubPage;

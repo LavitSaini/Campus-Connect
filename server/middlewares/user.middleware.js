@@ -11,7 +11,7 @@ export const checkAuth = async (req, res, next) => {
 
     if (!access_token) {
       return res.status(401).json({
-        message: "Unauthorized - No access token provided",
+        message: "Session Expired!",
       });
     }
 

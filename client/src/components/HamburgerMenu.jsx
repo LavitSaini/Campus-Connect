@@ -15,7 +15,7 @@ const HamburgerMenu = ({ active }) => {
   return (
     <Sheet>
       <SheetTrigger>
-        <img src="../assets/icons/menu.svg" alt="Menu Icon" className="w-7" />
+        <img src="/assets/icons/menu.svg" alt="Menu Icon" className="w-7" />
       </SheetTrigger>
       <SheetContent className="flex flex-col">
         <SheetHeader className="flex flex-col items-start gap-2 text-start">
@@ -46,44 +46,6 @@ const HamburgerMenu = ({ active }) => {
               </a>
             </li>
           ))}
-          {authUser && authUser.role === "admin" && (
-            <li>
-              <a
-                href="/create-event"
-                className={`relative group text-black transition duration-200 ${
-                  "create-event" === active ? "text-primary-500" : ""
-                } hover:text-primary-500`}
-              >
-                <span
-                  className={`absolute left-0 bottom-0 h-[2px] bg-primary-500 transition-all duration-300 ${
-                    "create-event" === active
-                      ? "w-full"
-                      : "w-0 group-hover:w-full"
-                  }`}
-                ></span>
-                Create Event
-              </a>
-            </li>
-          )}
-          {authUser && authUser.role === "admin" && (
-            <li>
-              <a
-                href="create-club"
-                className={`relative group text-black transition duration-200 ${
-                  "create-club" === active ? "text-primary-500" : ""
-                } hover:text-primary-500`}
-              >
-                <span
-                  className={`absolute left-0 bottom-0 h-[2px] bg-primary-500 transition-all duration-300 ${
-                    "create-club" === active
-                      ? "w-full"
-                      : "w-0 group-hover:w-full"
-                  }`}
-                ></span>
-                Create Club
-              </a>
-            </li>
-          )}
         </ul>
       </SheetContent>
     </Sheet>

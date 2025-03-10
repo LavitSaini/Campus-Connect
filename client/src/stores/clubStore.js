@@ -7,8 +7,10 @@ const useClubStore = create((set) => ({
   clubs: [],
   isClubsFetched: false,
   isCreatingClub: false,
+  isUpdatingClub: false,
   club: null,
   isClubFetched: false,
+  isDeletingClub: false,
 
   getClubs: async () => {
     try {
@@ -49,6 +51,30 @@ const useClubStore = create((set) => ({
       toast.error(error.response.data.message);
     } finally {
       set({ isCreatingClub: false });
+    }
+  },
+
+  updateClub: async (data, clubId) => {
+    set({ isUpdatingClub: true });
+    try {
+      await axiosInstance.patch(`/api/clubs/${clubId}`, data);
+      toast.success("Club Updated Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isUpdatingClub: false });
+    }
+  },
+
+  deleteClub: async (clubId) => {
+    set({ isDeletingClub: true });
+    try {
+      await axiosInstance.delete(`/api/clubs/${clubId}`);
+      toast.success("Club Deleted Success!");
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isDeletingClub: false });
     }
   },
 

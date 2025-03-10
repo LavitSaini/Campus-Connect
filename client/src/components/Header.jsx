@@ -29,7 +29,7 @@ const Header = ({ active }) => {
       <nav className="w-full max-w-[72rem] py-4 px-6 mx-auto flex flex-wrap gap-4 justify-between items-center lg:px-10">
         <Link to="/" className="flex gap-1 items-center">
           <img
-            src="../assets/images/logo.png"
+            src="/assets/images/logo.png"
             alt="Logo Icon"
             className="w-12"
           />
@@ -58,44 +58,6 @@ const Header = ({ active }) => {
               </a>
             </li>
           ))}
-          {authUser &&authUser.role === "admin" && (
-            <li>
-              <a
-                href="/create-event"
-                className={`relative group text-black transition duration-200 ${
-                  "create-event" === active ? "text-primary-500" : ""
-                } hover:text-primary-500`}
-              >
-                <span
-                  className={`absolute left-0 bottom-0 h-[2px] bg-primary-500 transition-all duration-300 ${
-                    "create-event" === active
-                      ? "w-full"
-                      : "w-0 group-hover:w-full"
-                  }`}
-                ></span>
-                Create Event
-              </a>
-            </li>
-          )}
-          {authUser && authUser.role === "admin" && (
-            <li>
-              <a
-                href="create-club"
-                className={`relative group text-black transition duration-200 ${
-                  "create-club" === active ? "text-primary-500" : ""
-                } hover:text-primary-500`}
-              >
-                <span
-                  className={`absolute left-0 bottom-0 h-[2px] bg-primary-500 transition-all duration-300 ${
-                    "create-club" === active
-                      ? "w-full"
-                      : "w-0 group-hover:w-full"
-                  }`}
-                ></span>
-                Create Club
-              </a>
-            </li>
-          )}
         </ul>
 
         <div className="relative flex gap-2.5 items-center">
@@ -117,7 +79,7 @@ const Header = ({ active }) => {
             <button onClick={() => setShowProfileModal((prev) => !prev)}>
               <img
                 ref={profileImgRef}
-                src={authUser.profileImageUrl || "../assets/images/avatar.png"}
+                src={authUser.profileImageUrl || "/assets/images/avatar.png"}
                 alt="Profile Pic"
                 className="size-10 border-[1px] border-primary-500 rounded-full object-cover cursor-pointer"
               />

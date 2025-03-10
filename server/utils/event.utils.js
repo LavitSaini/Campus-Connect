@@ -1,10 +1,10 @@
 import { transporter } from './../lib/nodemailer.js';
-import subscribe from '../models/subscribe.model.js';
+import Subscribe from '../models/subscribe.model.js'
 import dotenv from 'dotenv';
 dotenv.config();
 
 export const sendEventEmail = async (event) => {
-    const subscribedEmails = await subscribe.find({});
+    const subscribedEmails = await Subscribe.find({})
 
     if (subscribedEmails.length === 0) return;
 

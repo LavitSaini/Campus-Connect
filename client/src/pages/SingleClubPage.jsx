@@ -32,10 +32,11 @@ const SingleClubPage = () => {
   }, []);
 
   useEffect(() => {
-    if(club){
-      setClubFollowingUsersCount(club.followers.length)
+    if (club) {
+      setIsFollowing(club.followers.some((user) => user._id === authUser._id));
+      setClubFollowingUsersCount(club.followers.length);
     }
-  }, [club])
+  }, [club]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -186,7 +187,7 @@ const SingleClubPage = () => {
                           <li key={event._id}>
                             <Link
                               to={`/events/${event._id}`}
-                              className="flex flex-col items-start gap-3.5 bg-primary-50 p-4 shadow-md rounded-md border"
+                              className="flex flex-col items-start gap-3.5 bg-primary-50 p-4 shadow-md rounded-md border h-full"
                             >
                               <img
                                 src={

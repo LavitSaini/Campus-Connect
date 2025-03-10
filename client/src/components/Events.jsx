@@ -1,10 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useEventStore from "../stores/eventStore";
 import { Edit, Loader2, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Events = ({ userId }) => {
-  const { events, isEventsFetched, getUserEvents, isDeletingEvent, deleteEvent } = useEventStore();
+  const navigate = useNavigate();
+
+  const {
+    events,
+    isEventsFetched,
+    getUserEvents,
+    isDeletingEvent,
+    deleteEvent,
+  } = useEventStore();
+
+  const [deletingEventId, setDeletingEventId] = useState(null);
 
   useEffect(() => {
     getUserEvents(userId);
@@ -13,18 +23,19 @@ const Events = ({ userId }) => {
   const handleEventEdit = (e, eventId) => {
     e.preventDefault();
     e.stopPropagation();
+    navigate(`/events/edit/${eventId}`);
   };
 
   const handleEventDelete = async (e, eventId) => {
     e.preventDefault();
     e.stopPropagation();
+    setDeletingEventId(eventId)
     await deleteEvent(eventId);
-    getUserEvents(userId);
   };
 
   return (
     <div className="relative min-h-[65vh]">
-      {isEventsFetched && !isDeletingEvent  ? (
+      {isEventsFetched ? (
         events.length > 0 ? (
           <ul className="grid grid-cols-1 sm:grid-cols-2 custom-lg:grid-cols-3 gap-6">
             {events.map((event) => (
@@ -54,16 +65,20 @@ const Events = ({ userId }) => {
                         onClick={(e) => handleEventEdit(e, event._id)}
                         className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm bg-primary-500 text-white hover:bg-primary-300"
                       >
-                        <Edit className="size-4" />
                         <span>Edit</span>
+                        <Edit className="size-4" />
                       </button>
                       <button
                         onClick={(e) => handleEventDelete(e, event._id)}
                         variant="destructive"
                         className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm bg-red-500 text-white hover:bg-red-400"
                       >
-                        <Trash2 className="size-4" />
-                        <span>Delete</span>
+                        <span>{isDeletingEvent && deletingEventId === event._id ? "Deleting" : "Delete"}</span>
+                        {isDeletingEvent && deletingEventId === event._id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-4" />
+                        )}
                       </button>
                     </div>
                   </div>

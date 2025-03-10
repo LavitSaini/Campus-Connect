@@ -28,7 +28,7 @@ export const createEvent = async (req, res) => {
         data["eventImageUrl"] = uploadRes.secure_url;
       } catch (error) {
         console.log(error);
-        console.log("Error coming while uploading course image", error.message);
+        console.log("Error coming while uploading image", error.message);
         throw error;
       }
     }
@@ -46,6 +46,8 @@ export const createEvent = async (req, res) => {
           message: "Club not found",
         });
       }
+    } else {
+      delete data.club;
     }
 
     const titleSlug = slugify(data.title, { lower: true, strict: true });
@@ -90,7 +92,7 @@ export const deleteEvent = async (req, res) => {
     if (!eventId) {
       return res.status(400).json({
         success: false,
-        message: "EventId is required",
+        message: "Event Id is required",
       });
     }
 
@@ -134,7 +136,6 @@ export const deleteEvent = async (req, res) => {
       success: true,
       message: "Event deleted successfully",
     });
-
   } catch (error) {
     console.log("Error coming while deleting event", error.message);
     return res.status(500).json({
@@ -166,21 +167,60 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    if (data.eventImageUrl) {
+    // upload new image if it is present in data
+    if (data.eventImage) {
       try {
-        const uploadRes = await cloudinary.uploader.upload(data.eventImageUrl);
+        const uploadRes = await cloudinary.uploader.upload(data.eventImage, {
+          format: "webp",
+          folder: "event_images",
+        });
         data["eventImageUrl"] = uploadRes.secure_url;
       } catch (error) {
-        console.log(error);
-        console.log("Error coming while uploading course image", error.message);
-        throw error;
+        console.error("Error uploading image:", error);
       }
     }
+
+    // delete old image of event if it present in data (if no new image is provided then not delete old image)
+    if (data.oldEventImage && data.eventImage) {
+      try {
+        // Extract public ID from the URL
+        const urlParts = data.oldEventImage.split("/");
+        const publicIdWithExtension = urlParts.slice(7).join("/");
+        const publicId = publicIdWithExtension.split(".")[0];
+
+        // Delete image from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
+    }
+
+    if (data.club) {
+      await Club.updateMany({}, { $pull: { events: eventId } });
+      await Club.findByIdAndUpdate(
+        { _id: data.club },
+        { $addToSet: { events: eventId } }
+      );
+    } else {
+      if (event.club !== null) {
+        await Club.findByIdAndUpdate(
+          { _id: event.club },
+          { $pull: { events: eventId } }
+        );
+      }
+      data.club = null;
+    }
+
+    const titleSlug = slugify(data.title, { lower: true, strict: true });
+    data["titleSlug"] = `${titleSlug}-${uuidv4().slice(0, 8)}`;
+
+    delete data.eventImage;
+    delete data.oldEventImage;
 
     const updatedEvent = await Event.findByIdAndUpdate(eventId, data, {
       new: true,
     });
-    console.log(updateEvent);
+    console.log(updatedEvent);
 
     return res.json({
       success: true,
@@ -191,7 +231,7 @@ export const updateEvent = async (req, res) => {
     console.log("Error coming while updating event", error.message);
     return res.status(500).json({
       success: false,
-      message: "Unknown error occurred while updating event",
+      message: error.message,
     });
   }
 };
@@ -230,12 +270,12 @@ export const getSingleEvent = async (req, res) => {
   const { eventId } = req.params;
 
   const AUTHOR_SAFE_DATA = "name profileImageUrl";
+  const CLUB_SAFE_DATA = "name clubImageUrl";
 
   try {
-    const event = await Event.findById({ _id: eventId }).populate(
-      "author",
-      AUTHOR_SAFE_DATA
-    );
+    const event = await Event.findById({ _id: eventId })
+      .populate("author", AUTHOR_SAFE_DATA)
+      .populate("club", CLUB_SAFE_DATA);
 
     if (!event) {
       return res.status(404).json({

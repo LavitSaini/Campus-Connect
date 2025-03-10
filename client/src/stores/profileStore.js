@@ -9,6 +9,7 @@ const useProfileStore = create((set) => ({
   isUpdatingProfile: false,
 
   getProfile: async () => {
+    set({ isProfileFetched: false });
     try {
       const res = await axiosInstance.get("/api/auth/profile");
       set({ profileData: res.data, isProfileFetched: true });
@@ -24,7 +25,7 @@ const useProfileStore = create((set) => ({
       const res = await axiosInstance.post("/api/auth/update-profile", data);
       console.log(res);
       set({ profileData: res.data.profile });
-      useAuthStore.getState().setAuthUser(res.data.profile)
+      useAuthStore.getState().setAuthUser(res.data.profile);
       toast.success("Porfile Updated Success!");
     } catch (error) {
       toast.error(error.response.data.message);

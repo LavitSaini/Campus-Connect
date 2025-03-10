@@ -1,10 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Edit, Loader2, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useClubStore from "../stores/clubStore";
 
 const Clubs = ({ userId }) => {
-  const { clubs, isClubsFetched, getUserClubs } = useClubStore();
+
+  const navigate = useNavigate();
+
+  const {
+    clubs,
+    isClubsFetched,
+    getUserClubs,
+    isDeletingClub,
+    deleteClub,
+  } = useClubStore();
+
+  const [deletingClubId, setDeletingClubId] = useState(null);
 
   useEffect(() => {
     getUserClubs(userId);
@@ -13,11 +24,14 @@ const Clubs = ({ userId }) => {
   const handleClubEdit = (e, clubId) => {
     e.preventDefault();
     e.stopPropagation();
+    navigate(`/clubs/edit/${clubId}`)
   };
 
-  const handleClubDelete = (e, clubId) => {
+  const handleClubDelete = async (e, clubId) => {
     e.preventDefault();
     e.stopPropagation();
+    setDeletingClubId(clubId);
+    await deleteClub(clubId);
   };
 
   return (
@@ -52,16 +66,24 @@ const Clubs = ({ userId }) => {
                         onClick={(e) => handleClubEdit(e, club._id)}
                         className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm bg-primary-500 text-white hover:bg-primary-300"
                       >
-                        <Edit className="size-4" />
                         <span>Edit</span>
+                        <Edit className="size-4" />
                       </button>
                       <button
                         onClick={(e) => handleClubDelete(e, club._id)}
                         variant="destructive"
                         className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm bg-red-500 text-white hover:bg-red-400"
                       >
-                        <Trash2 className="size-4" />
-                        <span>Delete</span>
+                        <span>
+                          {isDeletingClub && deletingClubId === club._id
+                            ? "Deleting"
+                            : "Delete"}
+                        </span>
+                        {isDeletingClub ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-4" />
+                        )}
                       </button>
                     </div>
                   </div>

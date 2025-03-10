@@ -29,7 +29,7 @@ const ClubsPage = () => {
                       <Link to={`/clubs/${club._id}`}>
                         <img
                           src={
-                            club.clubImageUrl || "../assets/images/avatar.png"
+                            club.clubImageUrl || "../assets/images/image_avatar.jpg"
                           }
                           alt={club.name}
                           className="w-full aspect-[3/2] object-cover"

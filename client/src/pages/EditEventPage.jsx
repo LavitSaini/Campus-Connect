@@ -4,10 +4,13 @@ import Footer from "../components/Footer";
 import { Image, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import useEventStore from "../stores/eventStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useProfileStore from "../stores/profileStore";
 
-const CreateEventPage = () => {
+const EditEventPage = () => {
+  const { eventId } = useParams();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -17,9 +20,16 @@ const CreateEventPage = () => {
     date: "",
     club: "",
     registrationUrl: "",
+    oldEventImage: "",
   });
 
-  const navigate = useNavigate();
+  const {
+    event,
+    isEventFetched,
+    getSingleEvent,
+    isUpdatingEvent,
+    updateEvent,
+  } = useEventStore();
 
   const [categoryText, setCategoryText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
@@ -27,11 +37,30 @@ const CreateEventPage = () => {
   const fileInputRef = useRef(null);
 
   const { profileData, getProfile, isProfileFetched } = useProfileStore();
-  const { isCreatingEvent, createNewEvent } = useEventStore();
 
   useEffect(() => {
     getProfile();
+    getSingleEvent(eventId);
   }, []);
+
+  useEffect(() => {
+    if (event && event._id === eventId) {
+      setFormData({
+        title: event.title,
+        location: event.location,
+        description: event.description,
+        date: event.date,
+        category: event.category,
+        registrationUrl: event.registrationUrl,
+        club: event.club ? event.club._id : "",
+        oldEventImage: event.eventImageUrl ? event.eventImageUrl : "",
+      });
+    }
+  }, [event]);
+
+  useEffect(() => {
+    console.log(profileData);
+  }, [profileData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -107,19 +136,19 @@ const CreateEventPage = () => {
 
     const validatedSuccess = validateForm();
     if (validatedSuccess) {
-      await createNewEvent(formData);
-      navigate("/events");
+      await updateEvent(event._id, formData);
+      navigate('/dashboard', { state: { activeTab: "events" } });
     }
   };
 
   return (
     <>
-      <Header active="create-event" />
+      <Header />
       <main>
         <div className="w-full max-w-[72rem] mx-auto py-10 px-6 lg:px-10">
           <div className="p-8 bg-primary-50 shadow-lg rounded-md border">
             <h2 className="text-2xl font-semibold mb-6 text-primary-500 sm:text-3xl">
-              Create New Event
+              Edit Event
             </h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               <input
@@ -152,24 +181,36 @@ const CreateEventPage = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-7">
-                <div className="col-span-1 sm:col-span-3 relative group custom-lg:col-span-2">
-                  <img
-                    src={imagePreview || "../assets/images/image_avatar.jpg"}
-                    alt="Event Image"
-                    className="w-full h-44 object-cover border border-gray-300 rounded-md group-hover:border-primary-500"
-                  />
-                  <button
-                    type="button"
-                    className="hidden items-center shadow-md border gap-3 px-3 py-1.5 bg-primary-500 text-white rounded-md absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 hover:bg-primary-300 group-hover:flex"
-                    onClick={() => {
-                      if (fileInputRef.current) {
-                        fileInputRef.current.click();
-                      }
-                    }}
-                  >
-                    <span>Upload</span>
-                    <Image className="size-5" />
-                  </button>
+                <div className="col-span-1 sm:col-span-3 custom-lg:col-span-2">
+                  {isEventFetched ? (
+                    <div className="relative group">
+                      <img
+                        src={
+                          imagePreview ||
+                          event?.eventImageUrl ||
+                          "/assets/images/image_avatar.jpg"
+                        }
+                        alt={event.title}
+                        className="w-full h-44 object-cover border border-gray-300 rounded-md group-hover:border-primary-500"
+                      />
+                      <button
+                        type="button"
+                        className="hidden items-center shadow-md border gap-3 px-3 py-1.5 bg-primary-500 text-white rounded-md absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 hover:bg-primary-300 group-hover:flex"
+                        onClick={() => {
+                          if (fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                      >
+                        <span>Upload</span>
+                        <Image className="size-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-full flex justify-center items-center">
+                      <Loader2 className="size-5 text-primary-500 animate-spin" />
+                    </div>
+                  )}
                 </div>
                 <textarea
                   name="description"
@@ -282,13 +323,13 @@ const CreateEventPage = () => {
                 type="submit"
                 className="w-full flex justify-center items-center gap-3 bg-primary-500 text-white p-3 rounded-md text-lg font-semibold transition-colors hover:bg-primary-300"
               >
-                {isCreatingEvent ? (
+                {isUpdatingEvent ? (
                   <>
+                    Updating...
                     <Loader2 className="size-6 animate-spin" />
-                    Creating...
                   </>
                 ) : (
-                  "Create"
+                  "Update"
                 )}
               </button>
             </form>
@@ -300,4 +341,4 @@ const CreateEventPage = () => {
   );
 };
 
-export default CreateEventPage;
+export default EditEventPage;
