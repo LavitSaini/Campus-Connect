@@ -12,6 +12,7 @@ const Events = ({ userId }) => {
     getUserEvents,
     isDeletingEvent,
     deleteEvent,
+    setEvents,
   } = useEventStore();
 
   const [deletingEventId, setDeletingEventId] = useState(null);
@@ -29,8 +30,9 @@ const Events = ({ userId }) => {
   const handleEventDelete = async (e, eventId) => {
     e.preventDefault();
     e.stopPropagation();
-    setDeletingEventId(eventId)
+    setDeletingEventId(eventId);
     await deleteEvent(eventId);
+    setEvents(events.filter((event) => event._id !== eventId));
   };
 
   return (
@@ -73,7 +75,11 @@ const Events = ({ userId }) => {
                         variant="destructive"
                         className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-sm bg-red-500 text-white hover:bg-red-400"
                       >
-                        <span>{isDeletingEvent && deletingEventId === event._id ? "Deleting" : "Delete"}</span>
+                        <span>
+                          {isDeletingEvent && deletingEventId === event._id
+                            ? "Deleting"
+                            : "Delete"}
+                        </span>
                         {isDeletingEvent && deletingEventId === event._id ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (

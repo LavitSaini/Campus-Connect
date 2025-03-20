@@ -23,11 +23,11 @@ const HomePage = () => {
                 campus events, find teammates, and engage with your favorite
                 clubs – all with CampusConnect!
               </p>
-              <Link to="/events">
+              <a href="/events">
                 <Button className="w-full sm:w-auto rounded-full border-2 border-white bg-white text-primary-500 hover:bg-primary-500 hover:text-white hover:border-primary-500 transition duration-200">
                   Explore Events
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </section>

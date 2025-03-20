@@ -41,7 +41,9 @@ const CreateClubPage = () => {
     fetchAdminUsers();
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -119,9 +121,9 @@ const CreateClubPage = () => {
           return { admin: user._id };
         }),
       };
-      
+
       await createNewClub(data);
-      navigate("/clubs");
+      navigate("/dashboard", {state: {activeTab: "clubs"}});
     }
   };
 

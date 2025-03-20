@@ -12,6 +12,8 @@ const useClubStore = create((set) => ({
   isClubFetched: false,
   isDeletingClub: false,
 
+  setClubs: (data) => set({ clubs: data }),
+
   getClubs: async () => {
     try {
       const res = await axiosInstance.get("/api/clubs");

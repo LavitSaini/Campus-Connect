@@ -108,7 +108,7 @@ const CreateEventPage = () => {
     const validatedSuccess = validateForm();
     if (validatedSuccess) {
       await createNewEvent(formData);
-      navigate("/events");
+      navigate("/dashboard");
     }
   };
 

@@ -374,7 +374,9 @@ export const getUserClubs = async (req, res) => {
     const clubs = await Club.find({ createdBy: userId })
       .populate("followers", FOLLOWERS_SAFE_DATA)
       .populate("events", EVENTS_SAFE_DATA)
-      .populate("admins.admin", ADMINS_SAFE_DATA);
+      .populate("admins.admin", ADMINS_SAFE_DATA)
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json({
       success: true,

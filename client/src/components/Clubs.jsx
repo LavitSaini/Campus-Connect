@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import useClubStore from "../stores/clubStore";
 
 const Clubs = ({ userId }) => {
-
   const navigate = useNavigate();
 
   const {
@@ -13,6 +12,7 @@ const Clubs = ({ userId }) => {
     getUserClubs,
     isDeletingClub,
     deleteClub,
+    setClubs,
   } = useClubStore();
 
   const [deletingClubId, setDeletingClubId] = useState(null);
@@ -24,7 +24,7 @@ const Clubs = ({ userId }) => {
   const handleClubEdit = (e, clubId) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/clubs/edit/${clubId}`)
+    navigate(`/clubs/edit/${clubId}`);
   };
 
   const handleClubDelete = async (e, clubId) => {
@@ -32,6 +32,7 @@ const Clubs = ({ userId }) => {
     e.stopPropagation();
     setDeletingClubId(clubId);
     await deleteClub(clubId);
+    setClubs(clubs.filter((club) => club._id !== clubId));
   };
 
   return (
@@ -79,7 +80,7 @@ const Clubs = ({ userId }) => {
                             ? "Deleting"
                             : "Delete"}
                         </span>
-                        {isDeletingClub ? (
+                        {isDeletingClub && deletingClubId === club._id ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (
                           <Trash2 className="size-4" />

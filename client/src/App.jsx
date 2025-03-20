@@ -17,6 +17,7 @@ import SingleEventPage from "./pages/SingleEventPage";
 import SingleClubPage from "./pages/SingleClubPage";
 import EditEventPage from "./pages/EditEventPage";
 import EditClubPage from "./pages/EditClubPage";
+import ChatPage from "./pages/ChatPage";
 
 const App = () => {
   const { isCheckingAuth, authUser, checkAuth, previousLocation } =
@@ -28,7 +29,7 @@ const App = () => {
   useEffect(() => {
     checkAuth();
   }, []);
-  
+
   useEffect(() => {
     if (previousLocation) {
       navigate(previousLocation);
@@ -70,6 +71,10 @@ const App = () => {
         <Route
           path="/clubs"
           element={authUser ? <ClubsPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/chat"
+          element={authUser ? <ChatPage /> : <Navigate to="/login" />}
         />
         <Route
           path="/events/:eventId"

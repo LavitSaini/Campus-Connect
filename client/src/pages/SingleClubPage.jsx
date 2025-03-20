@@ -12,6 +12,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import useAuthStore from "../stores/authStore";
+import SelectChatAdminModal from "../components/SelectChatAdminModal";
 
 const SingleClubPage = () => {
   const { clubId } = useParams();
@@ -26,6 +27,7 @@ const SingleClubPage = () => {
   );
 
   const [isLoadingClub, setIsLoadingClub] = useState(false);
+  const [showSelectChatAdminModal, setShowSelectChatAdminModal] = useState(false);
 
   useEffect(() => {
     getSingleClub(clubId);
@@ -68,6 +70,7 @@ const SingleClubPage = () => {
     <>
       <Header />
       <main>
+        {showSelectChatAdminModal && <SelectChatAdminModal setShowSelectChatAdminModal={setShowSelectChatAdminModal} clubName={club.name} admins={club.admins} />}
         <div className="w-full max-w-[72rem] py-8 px-6 mx-auto md:px-10">
           <div className="min-h-[65vh] rounded-md shadow-md border-[1px]">
             {isClubFetched ? (
@@ -116,7 +119,7 @@ const SingleClubPage = () => {
                           </>
                         )}
                       </button>
-                      <button className="px-4 py-2 text-sm font-semibold rounded-md flex items-center gap-2 border-2 bg-primary-500 text-white border-primary-500 hover:bg-primary-300 hover:border-primary-300">
+                      <button onClick={() => setShowSelectChatAdminModal((prev) => !prev)} className="px-4 py-2 text-sm font-semibold rounded-md flex items-center gap-2 border-2 bg-primary-500 text-white border-primary-500 hover:bg-primary-300 hover:border-primary-300">
                         <MessageCircle className="size-5" />
                         <span>Chat</span>
                       </button>

@@ -11,6 +11,8 @@ const useEventStore = create((set) => ({
   event: null,
   isEventFetched: false,
 
+  setEvents: (data) => set({ events: data }),
+
   getEvents: async () => {
     set({ isEventsFetched: false });
     try {

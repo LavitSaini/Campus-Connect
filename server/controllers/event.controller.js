@@ -61,11 +61,11 @@ export const createEvent = async (req, res) => {
       await club.save();
     }
 
-    // run an async task to notify all the subscribe users about the event
-
+    
     admin.events.push(event._id);
     await admin.save();
-
+    
+    // run an async task to notify all the subscribe users about the event
     sendEventEmail(event).catch((error) => {
       console.error("Failed to send emails:", error);
     });
