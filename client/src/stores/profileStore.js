@@ -23,7 +23,6 @@ const useProfileStore = create((set) => ({
     set({ isUpdatingProfile: true });
     try {
       const res = await axiosInstance.post("/auth/update-profile", data);
-      console.log(res);
       set({ profileData: res.data.profile });
       useAuthStore.getState().setAuthUser(res.data.profile);
       toast.success("Porfile Updated Success!");

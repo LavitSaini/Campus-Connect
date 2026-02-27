@@ -45,6 +45,7 @@ const HomePage = () => {
                 </Link>
                 {authUser && (
                   <Button
+                    disabled={isLoading}
                     onClick={handleSubscribe}
                     className="w-full min-w-36 sm:w-auto rounded-full border-2 border-primary-500 bg-primary-500 text-white hover:bg-white hover:text-primary-500 hover:border-white transition duration-200"
                   >
